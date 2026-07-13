@@ -1,17 +1,51 @@
+# Python caches and environments
 __pycache__/
 *.py[cod]
 *.pyo
-
 .venv/
 .venv*/
 venv/
 env/
 
+# Test, lint, and coverage output
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build and packaging output
 build/
 dist/
 *.egg-info/
+Google-Scholar-Scraper-v*-Portable-Windows-x64.zip
+Google-Scholar-Scraper-v*-Setup-Windows-x64.exe
+SHA256SUMS.txt
 
-.pytest_cache/
+# Local export and smoke-test output
+exports/
+scholar_articles.xlsx
+scholar_articles.csv
+packaging-smoke.xlsx
+packaging-smoke.csv
 
-docs/ui-audit/before/*.png
-docs/ui-audit/after/*.png
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*readme-preview*.html
+
+# OS and editor metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.code-workspace
+
+# Temporary UI audit captures
+docs/ui-audit/before/
+docs/ui-audit/after/
+docs/ui-audit/tmp/
+docs/ui-audit/temp/

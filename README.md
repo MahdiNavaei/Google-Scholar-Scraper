@@ -21,21 +21,22 @@ Google Scholar Scraper is not affiliated with Google. It does not solve CAPTCHA,
 bypass access controls, rotate proxies, use account credentials, or use stealth
 browser automation.
 
-## Why V2 Exists
+## Why V2?
 
 The original goal is simple: make small-scale academic result collection easier
 without turning the project into an unsafe crawler or a heavyweight data
 platform. V2 focuses on a dependable desktop workflow, explicit failure states,
 local-only ranking, deterministic exports, and Windows packaging.
 
-## At A Glance
+What matters in practice:
 
-| Audience | What V2 Provides |
-| --- | --- |
-| Normal users | Search, review, open links, and export results. |
-| Developers | Focused Python modules, tests, and Windows build scripts. |
-| Researchers | Ranking, deduplication, partial results, and clear limits. |
-| Commercial evaluators | Source-available code and a clear license path. |
+- No API key is required.
+- No LLM or external AI service is used.
+- Smart Relevance Ranking runs locally.
+- Rate limits, blocked pages, parser errors, and cancellations are explicit.
+- Partial results are preserved when extraction stops early.
+- Reviewed results export to Excel and CSV.
+- Windows distribution supports both portable and installer-based workflows.
 
 ## Core Features
 
@@ -47,11 +48,11 @@ local-only ranking, deterministic exports, and Windows packaging.
 - Export reviewed results to Excel or CSV.
 - Run from source, portable Windows ZIP, or Windows installer artifacts.
 
-## Local Relevance Ranking
+## Smart Relevance Ranking
 
-Relevance ranking is optional and runs locally. It compares the query with
-article title and author/source metadata using deterministic token weighting and
-TF-IDF-style cosine scoring.
+Smart Relevance Ranking is optional and runs locally. It compares the query
+with article title and author/source metadata using deterministic token
+weighting and TF-IDF-style cosine scoring.
 
 The score is shown as `Relevance` in the UI and `Relevance Score` in exports.
 It is a review aid, not a semantic understanding score, confidence value,
@@ -258,15 +259,31 @@ docs/                     Release and audit documentation
 Google Scholar Scraper is source-available for noncommercial use under the
 [PolyForm Noncommercial License 1.0.0](LICENSE).
 
-This is not an OSI-approved open-source license. Commercial use requires a
-separate written commercial license from Mahdi Navaei. See
-[COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md).
+This is not an OSI-approved open-source license. See [NOTICE](NOTICE) for
+attribution and distribution notice information. See
+[COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) for the commercial licensing
+summary.
 
-Commercial licensing, sponsorship, integration discussions, and custom
-collaboration inquiries are welcome. For public project questions and bug
-reports, use GitHub Issues. For commercial discussions, contact Mahdi Navaei
-through the repository owner or GitHub profile channel unless another
-owner-approved business contact is added later.
+## Commercial Licensing
+
+The public repository is available under the PolyForm Noncommercial License
+1.0.0. Commercial use requires a separate written commercial license from Mahdi
+Navaei.
+
+Commercial licensing inquiries are welcome. Pricing is not published publicly,
+and each commercial arrangement may be evaluated separately.
+
+For commercial licensing inquiries, contact
+[Mahdi Navaei](https://github.com/MahdiNavaei).
+
+## Sponsorship & Integrations
+
+Project sponsorship, relevant commercial collaborations, carefully scoped
+integrations, and ecosystem partnership discussions are welcome when they fit
+the project direction.
+
+For sponsorship or integration inquiries, contact
+[Mahdi Navaei](https://github.com/MahdiNavaei).
 
 Bug reports and focused issue reports are welcome. Larger code contribution
 policy is intentionally conservative until a licensing and assignment process is
