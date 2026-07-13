@@ -274,7 +274,7 @@ Commercial licensing inquiries are welcome. Pricing is not published publicly,
 and each commercial arrangement may be evaluated separately.
 
 For commercial licensing inquiries, contact
-[Mahdi Navaei](https://github.com/MahdiNavaei).
+[Mahdi Navaei](M.Navaei1367@gmail.com).
 
 ## Sponsorship & Integrations
 
@@ -283,7 +283,7 @@ integrations, and ecosystem partnership discussions are welcome when they fit
 the project direction.
 
 For sponsorship or integration inquiries, contact
-[Mahdi Navaei](https://github.com/MahdiNavaei).
+[Mahdi Navaei](M.Navaei1367@gmail.com).
 
 Bug reports and focused issue reports are welcome. Larger code contribution
 policy is intentionally conservative until a licensing and assignment process is
