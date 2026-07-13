@@ -50,5 +50,9 @@ Clone the repository from GitHub.
 
 Install the required dependencies using pip: pip install requests beautifulsoup4 pandas.
 
-Run the program using Python: python scholar_scraper.py.
+Install the project in editable mode: pip install -e .
+
+Run the program using Python: python -m google_scholar_scraper.
+
+The legacy launcher is also available: python prog.py.
 
