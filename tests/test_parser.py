@@ -31,6 +31,13 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(result.articles[0].authors, "")
         self.assertEqual(result.articles[0].link, "")
 
+    def test_parser_preserves_raw_article_text_for_data_quality_layer(self) -> None:
+        result = parse_scholar_page(fixture("scholar_results_duplicates.html"))
+
+        self.assertEqual(result.status, ExtractionStatus.SUCCESS)
+        self.assertEqual(len(result.articles), 2)
+        self.assertIn("\n", result.articles[0].title)
+
     def test_genuine_no_results_detection(self) -> None:
         result = parse_scholar_page(fixture("scholar_results_empty.html"))
 

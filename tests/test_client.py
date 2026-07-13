@@ -20,6 +20,29 @@ BASIC_HTML = """
 </body></html>
 """
 
+DUPLICATE_HTML = """
+<html><body>
+  <div class="gs_ri">
+    <h3 class="gs_rt"><a href="https://example.edu/duplicate#section">  Shared
+      Title  </a></h3>
+    <div class="gs_a"> Author   One </div>
+  </div>
+  <div class="gs_ri">
+    <h3 class="gs_rt"><a href="https://example.edu/unique">Unique Title</a></h3>
+    <div class="gs_a">Author Two</div>
+  </div>
+</body></html>
+"""
+
+DUPLICATE_SECOND_PAGE_HTML = """
+<html><body>
+  <div class="gs_ri">
+    <h3 class="gs_rt"><a href="https://example.edu/duplicate">SHARED TITLE</a></h3>
+    <div class="gs_a">Author One</div>
+  </div>
+</body></html>
+"""
+
 RATE_LIMIT_HTML = "<html><body><h1>Too many requests</h1></body></html>"
 BLOCKED_HTML = "<html><body>Our systems have detected unusual traffic. CAPTCHA</body></html>"
 EMPTY_HTML = "<html><body>Your search did not match any articles.</body></html>"
@@ -62,8 +85,22 @@ class ClientTests(unittest.TestCase):
 
         self.assertEqual(result.status, ExtractionStatus.SUCCESS)
         self.assertEqual(result.successful_pages, 2)
-        self.assertEqual(len(result.articles), 2)
+        self.assertEqual(len(result.articles), 1)
+        self.assertEqual(result.duplicates_removed, 1)
         self.assertEqual(len(session.calls), 2)
+
+    def test_successful_multi_page_extraction_removes_duplicates(self) -> None:
+        session = FakeSession([FakeResponse(DUPLICATE_HTML), FakeResponse(DUPLICATE_SECOND_PAGE_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=0)
+
+        result = scrape_scholar("query", 2, client=client)
+
+        self.assertEqual(result.status, ExtractionStatus.SUCCESS)
+        self.assertEqual(len(result.articles), 2)
+        self.assertEqual(result.duplicates_removed, 1)
+        self.assertEqual([article.title for article in result.articles], ["Shared Title", "Unique Title"])
+        self.assertEqual(result.articles[0].link, "https://example.edu/duplicate")
+        self.assertIn("Removed 1 duplicate articles.", result.message)
 
     def test_later_page_rate_limit_preserves_partial_results(self) -> None:
         session = FakeSession([FakeResponse(BASIC_HTML), FakeResponse(RATE_LIMIT_HTML, 429)])
@@ -75,6 +112,25 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(result.successful_pages, 1)
         self.assertEqual(result.failure_page, 2)
         self.assertEqual(len(result.articles), 1)
+        self.assertEqual(result.diagnostic, ExtractionStatus.RATE_LIMITED.value)
+
+    def test_partial_success_removes_duplicates_from_successful_pages(self) -> None:
+        session = FakeSession(
+            [
+                FakeResponse(DUPLICATE_HTML),
+                FakeResponse(DUPLICATE_SECOND_PAGE_HTML),
+                FakeResponse(RATE_LIMIT_HTML, 429),
+            ]
+        )
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=0)
+
+        result = scrape_scholar("query", 3, client=client)
+
+        self.assertEqual(result.status, ExtractionStatus.PARTIAL_SUCCESS)
+        self.assertEqual(result.successful_pages, 2)
+        self.assertEqual(result.failure_page, 3)
+        self.assertEqual(len(result.articles), 2)
+        self.assertEqual(result.duplicates_removed, 1)
         self.assertEqual(result.diagnostic, ExtractionStatus.RATE_LIMITED.value)
 
     def test_rate_limited_first_page_is_not_success(self) -> None:

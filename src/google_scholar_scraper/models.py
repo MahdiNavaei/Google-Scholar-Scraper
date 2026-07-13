@@ -35,6 +35,8 @@ class ExtractionResult:
     failure_page: int | None = None
     message: str = ""
     diagnostic: str = ""
+    duplicates_removed: int = 0
+    invalid_articles_removed: int = 0
 
     @property
     def has_articles(self) -> bool:

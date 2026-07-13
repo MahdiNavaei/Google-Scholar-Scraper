@@ -2,6 +2,7 @@ import time
 
 import requests
 
+from google_scholar_scraper.dedupe import deduplicate_articles
 from google_scholar_scraper.models import Article, ExtractionResult, ExtractionStatus
 from google_scholar_scraper.scraper.parser import parse_scholar_articles, parse_scholar_page
 
@@ -77,6 +78,8 @@ def scrape_scholar(
 ) -> ExtractionResult:
     active_client = client or ScholarClient()
     articles: list[Article] = []
+    duplicates_removed = 0
+    invalid_articles_removed = 0
     successful_pages = 0
 
     for page in range(num_pages):
@@ -89,6 +92,8 @@ def scrape_scholar(
                 requested_pages=num_pages,
                 successful_pages=successful_pages,
                 failure_page=page_number,
+                duplicates_removed=duplicates_removed,
+                invalid_articles_removed=invalid_articles_removed,
             )
 
         response = response_result
@@ -108,9 +113,19 @@ def scrape_scholar(
                 requested_pages=num_pages,
                 successful_pages=successful_pages,
                 failure_page=page_number,
+                duplicates_removed=duplicates_removed,
+                invalid_articles_removed=invalid_articles_removed,
             )
 
-        articles.extend(page_result.articles)
+        page_deduped = deduplicate_articles(page_result.articles)
+        articles.extend(page_deduped.articles)
+        duplicates_removed += page_deduped.duplicates_removed
+        invalid_articles_removed += page_deduped.invalid_removed
+
+        all_deduped = deduplicate_articles(articles)
+        articles = all_deduped.articles
+        duplicates_removed += all_deduped.duplicates_removed
+        invalid_articles_removed += all_deduped.invalid_removed
         successful_pages += 1
 
         if page < num_pages - 1 and active_client.page_delay_seconds > 0:
@@ -123,14 +138,22 @@ def scrape_scholar(
             requested_pages=num_pages,
             successful_pages=successful_pages,
             message="Google Scholar returned no results for this query.",
+            duplicates_removed=duplicates_removed,
+            invalid_articles_removed=invalid_articles_removed,
         )
+
+    message = f"Extraction complete. Collected {len(articles)} articles."
+    if duplicates_removed:
+        message += f" Removed {duplicates_removed} duplicate articles."
 
     return ExtractionResult(
         status=ExtractionStatus.SUCCESS,
         articles=articles,
         requested_pages=num_pages,
         successful_pages=successful_pages,
-        message=f"Extraction complete. Collected {len(articles)} articles.",
+        message=message,
+        duplicates_removed=duplicates_removed,
+        invalid_articles_removed=invalid_articles_removed,
     )
 
 
@@ -203,19 +226,30 @@ def _with_partial_if_needed(
     requested_pages: int,
     successful_pages: int,
     failure_page: int,
+    duplicates_removed: int = 0,
+    invalid_articles_removed: int = 0,
 ) -> ExtractionResult:
     if articles:
+        deduped = deduplicate_articles(articles)
+        duplicate_count = duplicates_removed + deduped.duplicates_removed
+        invalid_count = invalid_articles_removed + deduped.invalid_removed
+        message = (
+            f"Extraction stopped early on page {failure_page}: "
+            f"{result.message} Exported {len(deduped.articles)} collected articles."
+        )
+        if duplicate_count:
+            message += f" Removed {duplicate_count} duplicate articles."
+
         return ExtractionResult(
             status=ExtractionStatus.PARTIAL_SUCCESS,
-            articles=articles,
+            articles=deduped.articles,
             requested_pages=requested_pages,
             successful_pages=successful_pages,
             failure_page=failure_page,
-            message=(
-                f"Extraction stopped early on page {failure_page}: "
-                f"{result.message} Exported {len(articles)} collected articles."
-            ),
+            message=message,
             diagnostic=result.status.value,
+            duplicates_removed=duplicate_count,
+            invalid_articles_removed=invalid_count,
         )
 
     return ExtractionResult(
@@ -226,4 +260,6 @@ def _with_partial_if_needed(
         failure_page=failure_page,
         message=result.message,
         diagnostic=result.diagnostic,
+        duplicates_removed=duplicates_removed,
+        invalid_articles_removed=invalid_articles_removed,
     )
