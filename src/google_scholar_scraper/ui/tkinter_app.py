@@ -18,12 +18,27 @@ DEFAULT_EXCEL_FILENAME = "scholar_articles.xlsx"
 DEFAULT_CSV_FILENAME = "scholar_articles.csv"
 APP_TITLE = "Google Scholar Scraper"
 
+COLORS = {
+    "app_bg": "#f3f6fb",
+    "surface": "#ffffff",
+    "surface_alt": "#f8fafc",
+    "text": "#111827",
+    "muted": "#5b677a",
+    "border": "#d8e0ea",
+    "border_strong": "#b9c6d6",
+    "primary": "#185abc",
+    "primary_hover": "#1f6feb",
+    "secondary_hover": "#f4f7fb",
+    "disabled": "#a6afbd",
+    "selection": "#dbeafe",
+}
+
 STATUS_COLORS = {
-    "ready": {"bg": "#eef3f8", "border": "#c8d5e3", "heading": "#1f2937", "detail": "#4b5563"},
-    "running": {"bg": "#edf5ff", "border": "#9cc9ff", "heading": "#174ea6", "detail": "#2f5f9f"},
-    "success": {"bg": "#ecf8f1", "border": "#9ad7b1", "heading": "#166534", "detail": "#2f6b44"},
-    "warning": {"bg": "#fff8e8", "border": "#e7c86f", "heading": "#8a5a00", "detail": "#6f5600"},
-    "error": {"bg": "#fff1f2", "border": "#f1a9b3", "heading": "#9f1239", "detail": "#7f1d1d"},
+    "ready": {"bg": "#f8fafc", "border": "#d8e0ea", "accent": "#64748b", "heading": "#1f2937", "detail": "#5b677a"},
+    "running": {"bg": "#f5f9ff", "border": "#c5dcfb", "accent": "#185abc", "heading": "#174ea6", "detail": "#355f96"},
+    "success": {"bg": "#f4fbf7", "border": "#bde7cd", "accent": "#16803c", "heading": "#166534", "detail": "#366b49"},
+    "warning": {"bg": "#fffaf0", "border": "#edd79a", "accent": "#b7791f", "heading": "#8a5a00", "detail": "#725a18"},
+    "error": {"bg": "#fff5f6", "border": "#f2bdc5", "accent": "#c0264d", "heading": "#9f1239", "detail": "#7f1d1d"},
 }
 
 
@@ -189,9 +204,9 @@ class MainWindow:
     def __init__(self) -> None:
         self.window = tk.Tk()
         self.window.title(f"{APP_TITLE} v{__version__}")
-        self.window.geometry("1080x720")
+        self.window.geometry("1080x700")
         self.window.minsize(860, 560)
-        self.window.configure(bg="#f5f7fb")
+        self.window.configure(bg=COLORS["app_bg"])
         self._configure_style()
 
         self.message_queue: queue.Queue[WorkerMessage] = queue.Queue()
@@ -221,9 +236,16 @@ class MainWindow:
 
     def _configure_style(self) -> None:
         self.default_font = tkfont.nametofont("TkDefaultFont")
-        self.default_font.configure(size=10)
-        self.heading_font = tkfont.Font(family=self.default_font.actual("family"), size=15, weight="bold")
+        try:
+            self.default_font.configure(family="Segoe UI", size=10)
+        except tk.TclError:
+            self.default_font.configure(size=10)
+        font_family = self.default_font.actual("family")
+        self.heading_font = tkfont.Font(family=font_family, size=16, weight="bold")
         self.section_font = tkfont.Font(family=self.default_font.actual("family"), size=11, weight="bold")
+        self.status_font = tkfont.Font(family=font_family, size=10, weight="bold")
+        self.table_font = tkfont.Font(family=font_family, size=10)
+        self.table_heading_font = tkfont.Font(family=font_family, size=10, weight="bold")
 
         self.style = ttk.Style(self.window)
         try:
@@ -231,30 +253,82 @@ class MainWindow:
         except tk.TclError:
             pass
 
-        self.style.configure("App.TFrame", background="#f5f7fb")
-        self.style.configure("Header.TFrame", background="#f5f7fb")
-        self.style.configure("Section.TLabelframe", background="#f5f7fb", bordercolor="#d8dee9")
-        self.style.configure("Section.TLabelframe.Label", background="#f5f7fb", foreground="#1f2937", font=self.section_font)
-        self.style.configure("App.TLabel", background="#f5f7fb", foreground="#1f2937")
-        self.style.configure("Muted.TLabel", background="#f5f7fb", foreground="#5f6b7a")
-        self.style.configure("Title.TLabel", background="#f5f7fb", foreground="#111827", font=self.heading_font)
-        self.style.configure("Primary.TButton", padding=(14, 7), foreground="#ffffff", background="#1f6feb")
-        self.style.map(
-            "Primary.TButton",
-            background=[("disabled", "#a7c4ef"), ("pressed", "#174ea6"), ("active", "#2f7df6")],
-            foreground=[("disabled", "#eef4ff"), ("!disabled", "#ffffff")],
+        self.style.configure("App.TFrame", background=COLORS["app_bg"])
+        self.style.configure("Surface.TFrame", background=COLORS["surface"])
+        self.style.configure("Header.TFrame", background=COLORS["app_bg"])
+        self.style.configure("App.TLabel", background=COLORS["app_bg"], foreground=COLORS["text"])
+        self.style.configure("Surface.TLabel", background=COLORS["surface"], foreground=COLORS["text"])
+        self.style.configure("Muted.TLabel", background=COLORS["app_bg"], foreground=COLORS["muted"])
+        self.style.configure("SurfaceMuted.TLabel", background=COLORS["surface"], foreground=COLORS["muted"])
+        self.style.configure("Title.TLabel", background=COLORS["app_bg"], foreground=COLORS["text"], font=self.heading_font)
+        self.style.configure("SectionTitle.TLabel", background=COLORS["surface"], foreground=COLORS["text"], font=self.section_font)
+        self.style.configure("TEntry", fieldbackground="#ffffff", bordercolor=COLORS["border_strong"], lightcolor=COLORS["border"], darkcolor=COLORS["border"])
+        self.style.map("TEntry", bordercolor=[("focus", COLORS["primary"])])
+        self.style.configure("Horizontal.TProgressbar", troughcolor="#edf2f7", background=COLORS["primary"], bordercolor="#edf2f7", lightcolor=COLORS["primary"], darkcolor=COLORS["primary"])
+        self.style.configure(
+            "Treeview",
+            background="#ffffff",
+            fieldbackground="#ffffff",
+            foreground=COLORS["text"],
+            rowheight=30,
+            borderwidth=0,
+            relief="flat",
+            font=self.table_font,
         )
-        self.style.configure("Secondary.TButton", padding=(12, 7))
-        self.style.configure("Treeview", rowheight=26)
-        self.style.configure("Treeview.Heading", font=(self.default_font.actual("family"), 10, "bold"))
-        self.style.configure("Horizontal.TProgressbar", troughcolor="#dfe6ef", background="#1f6feb")
+        self.style.map(
+            "Treeview",
+            background=[("selected", COLORS["selection"])],
+            foreground=[("selected", COLORS["text"])],
+        )
+        self.style.configure(
+            "Treeview.Heading",
+            background="#eef3f8",
+            foreground=COLORS["text"],
+            bordercolor=COLORS["border"],
+            relief="flat",
+            font=self.table_heading_font,
+        )
+
+    def _surface(self, parent, *, border: str | None = None) -> tk.Frame:
+        return tk.Frame(
+            parent,
+            bg=COLORS["surface"],
+            bd=0,
+            highlightthickness=1 if border else 0,
+            highlightbackground=border or COLORS["surface"],
+            highlightcolor=border or COLORS["surface"],
+        )
+
+    def _button(self, parent, *, text: str, command, kind: str = "secondary", width: int | None = None) -> tk.Button:
+        is_primary = kind == "primary"
+        button = tk.Button(
+            parent,
+            text=text,
+            command=command,
+            width=width or (16 if is_primary else 12),
+            padx=12,
+            pady=7,
+            bd=0,
+            relief=tk.FLAT,
+            cursor="hand2",
+            font=(self.default_font.actual("family"), 10, "bold" if is_primary else "normal"),
+            bg=COLORS["primary"] if is_primary else COLORS["surface_alt"],
+            fg="#ffffff" if is_primary else COLORS["text"],
+            activebackground=COLORS["primary_hover"] if is_primary else COLORS["secondary_hover"],
+            activeforeground="#ffffff" if is_primary else COLORS["text"],
+            disabledforeground="#edf4ff" if is_primary else COLORS["disabled"],
+            highlightthickness=1,
+            highlightbackground=COLORS["primary"] if is_primary else COLORS["border_strong"],
+            highlightcolor=COLORS["primary"] if is_primary else COLORS["border_strong"],
+        )
+        return button
 
     def _build_ui(self) -> None:
         self.window.columnconfigure(0, weight=1)
         self.window.rowconfigure(4, weight=1)
 
         header_frame = ttk.Frame(self.window, style="Header.TFrame")
-        header_frame.grid(row=0, column=0, sticky="ew", padx=16, pady=(14, 8))
+        header_frame.grid(row=0, column=0, sticky="ew", padx=18, pady=(16, 10))
         header_frame.columnconfigure(0, weight=1)
         ttk.Label(header_frame, text=f"{APP_TITLE} v{__version__}", style="Title.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(
@@ -263,64 +337,76 @@ class MainWindow:
             style="Muted.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(3, 0))
 
-        search_frame = ttk.LabelFrame(self.window, text="Search setup", style="Section.TLabelframe")
-        search_frame.grid(row=1, column=0, sticky="ew", padx=16, pady=(4, 8))
+        search_frame = self._surface(self.window, border=COLORS["border"])
+        search_frame.grid(row=1, column=0, sticky="ew", padx=18, pady=(0, 10))
         search_frame.columnconfigure(1, weight=1)
         search_frame.columnconfigure(3, weight=1)
 
-        ttk.Label(search_frame, text="Query", style="App.TLabel").grid(row=0, column=0, sticky="w", padx=(12, 8), pady=(12, 8))
+        ttk.Label(search_frame, text="Search setup", style="SectionTitle.TLabel").grid(row=0, column=0, columnspan=5, sticky="w", padx=14, pady=(12, 4))
+
+        ttk.Label(search_frame, text="Query", style="Surface.TLabel").grid(row=1, column=0, sticky="w", padx=(14, 10), pady=(8, 8))
         self.entry_query = ttk.Entry(search_frame, textvariable=self.query_var)
-        self.entry_query.grid(row=0, column=1, columnspan=4, sticky="ew", padx=(0, 12), pady=(12, 8))
+        self.entry_query.grid(row=1, column=1, columnspan=4, sticky="ew", padx=(0, 14), pady=(8, 8), ipady=3)
 
-        ttk.Label(search_frame, text="Pages to scan", style="App.TLabel").grid(row=1, column=0, sticky="w", padx=(12, 8), pady=8)
+        ttk.Label(search_frame, text="Pages to scan", style="Surface.TLabel").grid(row=2, column=0, sticky="w", padx=(14, 10), pady=8)
         self.entry_pages = ttk.Entry(search_frame, textvariable=self.pages_var, width=8)
-        self.entry_pages.grid(row=1, column=1, sticky="w", padx=(0, 16), pady=8)
+        self.entry_pages.grid(row=2, column=1, sticky="w", padx=(0, 18), pady=8, ipady=3)
 
-        self.check_ranking = ttk.Checkbutton(
+        self.check_ranking = tk.Checkbutton(
             search_frame,
             text="Rank by relevance",
             variable=self.ranking_var,
+            bg=COLORS["surface"],
+            fg=COLORS["text"],
+            activebackground=COLORS["surface"],
+            activeforeground=COLORS["text"],
+            selectcolor="#ffffff",
+            bd=0,
+            highlightthickness=0,
+            font=(self.default_font.actual("family"), 10),
         )
-        self.check_ranking.grid(row=1, column=2, sticky="w", padx=(0, 8), pady=8)
+        self.check_ranking.grid(row=2, column=2, sticky="w", padx=(0, 8), pady=8)
         ttk.Label(
             search_frame,
             text="Uses local lexical scoring; no external AI service.",
-            style="Muted.TLabel",
-        ).grid(row=1, column=3, columnspan=2, sticky="w", padx=(0, 12), pady=8)
+            style="SurfaceMuted.TLabel",
+        ).grid(row=2, column=3, columnspan=2, sticky="w", padx=(0, 14), pady=8)
 
-        ttk.Label(search_frame, text="Export folder", style="App.TLabel").grid(row=2, column=0, sticky="w", padx=(12, 8), pady=(8, 12))
+        ttk.Label(search_frame, text="Export folder", style="Surface.TLabel").grid(row=3, column=0, sticky="w", padx=(14, 10), pady=(8, 14))
         self.entry_folder = ttk.Entry(search_frame, textvariable=self.output_folder_var)
-        self.entry_folder.grid(row=2, column=1, columnspan=3, sticky="ew", padx=(0, 8), pady=(8, 12))
-        self.button_browse = ttk.Button(search_frame, text="Browse", command=self.browse_folder, style="Secondary.TButton")
-        self.button_browse.grid(row=2, column=4, sticky="e", padx=(0, 12), pady=(8, 12))
+        self.entry_folder.grid(row=3, column=1, columnspan=3, sticky="ew", padx=(0, 10), pady=(8, 14), ipady=3)
+        self.button_browse = self._button(search_frame, text="Browse", command=self.browse_folder, width=11)
+        self.button_browse.grid(row=3, column=4, sticky="e", padx=(0, 14), pady=(8, 14))
 
         action_frame = ttk.Frame(self.window, style="App.TFrame")
-        action_frame.grid(row=2, column=0, sticky="ew", padx=16, pady=(0, 8))
+        action_frame.grid(row=2, column=0, sticky="ew", padx=18, pady=(0, 10))
         action_frame.columnconfigure(2, weight=1)
 
-        self.button_search = ttk.Button(action_frame, text="Search Scholar", command=self.start_search, style="Primary.TButton")
+        self.button_search = self._button(action_frame, text="Search Scholar", command=self.start_search, kind="primary", width=16)
         self.button_search.grid(row=0, column=0, padx=(0, 8))
-        self.button_cancel = ttk.Button(action_frame, text="Cancel", command=self.cancel_search, style="Secondary.TButton")
-        self.button_cancel.grid(row=0, column=1, padx=8)
+        self.button_cancel = self._button(action_frame, text="Cancel", command=self.cancel_search, width=12)
+        self.button_cancel.grid(row=0, column=1, padx=(4, 0))
 
-        self.status_frame = tk.Frame(self.window, bd=0, highlightthickness=1)
-        self.status_frame.grid(row=3, column=0, sticky="ew", padx=16, pady=(0, 10))
-        self.status_frame.columnconfigure(0, weight=1)
+        self.status_frame = self._surface(self.window, border=COLORS["border"])
+        self.status_frame.grid(row=3, column=0, sticky="ew", padx=18, pady=(0, 10))
+        self.status_frame.columnconfigure(1, weight=1)
+        self.status_accent = tk.Frame(self.status_frame, width=4, bg=STATUS_COLORS["ready"]["accent"])
+        self.status_accent.grid(row=0, column=0, rowspan=3, sticky="nsw")
 
         self.status_heading_label = tk.Label(
             self.status_frame,
             textvariable=self.status_heading_var,
             anchor="w",
-            font=(self.default_font.actual("family"), 10, "bold"),
+            font=self.status_font,
         )
-        self.status_heading_label.grid(row=0, column=0, sticky="ew", padx=12, pady=(10, 2))
+        self.status_heading_label.grid(row=0, column=1, sticky="ew", padx=14, pady=(10, 2))
         self.status_detail_label = tk.Label(self.status_frame, textvariable=self.status_var, anchor="w", justify="left")
-        self.status_detail_label.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 6))
+        self.status_detail_label.grid(row=1, column=1, sticky="ew", padx=14, pady=(0, 7))
         self.progress_bar = ttk.Progressbar(self.status_frame, variable=self.progress_var, maximum=100)
-        self.progress_bar.grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 10))
+        self.progress_bar.grid(row=2, column=1, sticky="ew", padx=14, pady=(0, 11))
 
         results_frame = ttk.Frame(self.window, style="App.TFrame")
-        results_frame.grid(row=4, column=0, sticky="nsew", padx=16, pady=(0, 16))
+        results_frame.grid(row=4, column=0, sticky="nsew", padx=18, pady=(0, 18))
         results_frame.columnconfigure(0, weight=1)
         results_frame.rowconfigure(1, weight=1)
 
@@ -329,9 +415,9 @@ class MainWindow:
         results_header.columnconfigure(1, weight=1)
         ttk.Label(results_header, text="Results", style="Title.TLabel").grid(row=0, column=0, sticky="w")
         ttk.Label(results_header, textvariable=self.summary_var, style="Muted.TLabel").grid(row=0, column=1, sticky="w", padx=12)
-        self.button_export_excel = ttk.Button(results_header, text="Export Excel", command=self.export_excel_results, style="Secondary.TButton")
+        self.button_export_excel = self._button(results_header, text="Export Excel", command=self.export_excel_results, width=12)
         self.button_export_excel.grid(row=0, column=2, padx=(8, 0))
-        self.button_export_csv = ttk.Button(results_header, text="Export CSV", command=self.export_csv_results, style="Secondary.TButton")
+        self.button_export_csv = self._button(results_header, text="Export CSV", command=self.export_csv_results, width=12)
         self.button_export_csv.grid(row=0, column=3, padx=(8, 0))
 
         self.results_content = ttk.Frame(results_frame, style="App.TFrame")
@@ -340,7 +426,7 @@ class MainWindow:
         self.results_content.rowconfigure(0, weight=1)
 
         columns = ("title", "authors", "score", "link")
-        self.table_container = ttk.Frame(self.results_content, style="App.TFrame")
+        self.table_container = self._surface(self.results_content, border=COLORS["border"])
         self.table_container.grid(row=0, column=0, sticky="nsew")
         self.table_container.columnconfigure(0, weight=1)
         self.table_container.rowconfigure(0, weight=1)
@@ -411,7 +497,7 @@ class MainWindow:
     def cancel_search(self) -> None:
         if self.cancel_event is not None and self._is_running():
             self.cancel_event.set()
-            self.button_cancel.configure(state=tk.DISABLED)
+            self._set_button_state(self.button_cancel, tk.DISABLED)
             self._set_status("Cancelling search", "Finishing the current safe stop point...", "warning")
 
     def poll_worker_queue(self) -> None:
@@ -527,14 +613,16 @@ class MainWindow:
     def _set_status_tone(self, tone: str) -> None:
         colors = STATUS_COLORS.get(tone, STATUS_COLORS["ready"])
         self.status_frame.configure(bg=colors["bg"], highlightbackground=colors["border"])
+        self.status_accent.configure(bg=colors["accent"])
         self.status_heading_label.configure(bg=colors["bg"], fg=colors["heading"])
         self.status_detail_label.configure(bg=colors["bg"], fg=colors["detail"])
+        self.style.configure("Horizontal.TProgressbar", background=colors["accent"], lightcolor=colors["accent"], darkcolor=colors["accent"])
 
     def _set_running_state(self) -> None:
-        self.button_search.configure(state=tk.DISABLED)
-        self.button_cancel.configure(state=tk.NORMAL)
-        self.button_export_excel.configure(state=tk.DISABLED)
-        self.button_export_csv.configure(state=tk.DISABLED)
+        self._set_button_state(self.button_search, tk.DISABLED, kind="primary")
+        self._set_button_state(self.button_cancel, tk.NORMAL)
+        self._set_button_state(self.button_export_excel, tk.DISABLED)
+        self._set_button_state(self.button_export_csv, tk.DISABLED)
         self.entry_query.configure(state=tk.DISABLED)
         self.entry_pages.configure(state=tk.DISABLED)
         self.entry_folder.configure(state=tk.DISABLED)
@@ -542,16 +630,35 @@ class MainWindow:
         self.check_ranking.configure(state=tk.DISABLED)
 
     def _set_idle_state(self) -> None:
-        self.button_search.configure(state=tk.NORMAL)
-        self.button_cancel.configure(state=tk.DISABLED)
+        self._set_button_state(self.button_search, tk.NORMAL, kind="primary")
+        self._set_button_state(self.button_cancel, tk.DISABLED)
         export_state = tk.NORMAL if self.current_articles else tk.DISABLED
-        self.button_export_excel.configure(state=export_state)
-        self.button_export_csv.configure(state=export_state)
+        self._set_button_state(self.button_export_excel, export_state)
+        self._set_button_state(self.button_export_csv, export_state)
         self.entry_query.configure(state=tk.NORMAL)
         self.entry_pages.configure(state=tk.NORMAL)
         self.entry_folder.configure(state=tk.NORMAL)
         self.button_browse.configure(state=tk.NORMAL)
         self.check_ranking.configure(state=tk.NORMAL)
+
+    def _set_button_state(self, button, state: str, *, kind: str = "secondary") -> None:
+        is_primary = kind == "primary"
+        if state == tk.DISABLED:
+            button.configure(
+                state=tk.DISABLED,
+                bg="#9bbbe8" if is_primary else "#f1f4f8",
+                fg="#edf4ff" if is_primary else COLORS["disabled"],
+                highlightbackground="#9bbbe8" if is_primary else COLORS["border"],
+                cursor="arrow",
+            )
+            return
+        button.configure(
+            state=tk.NORMAL,
+            bg=COLORS["primary"] if is_primary else COLORS["surface_alt"],
+            fg="#ffffff" if is_primary else COLORS["text"],
+            highlightbackground=COLORS["primary"] if is_primary else COLORS["border_strong"],
+            cursor="hand2",
+        )
 
     def _is_running(self) -> bool:
         return bool(self.worker and self.worker.is_alive())

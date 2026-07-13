@@ -62,6 +62,11 @@ class DummyTable:
         self.rows.pop(item)
 
 
+class DummyStyle:
+    def configure(self, *_args, **_kwargs) -> None:
+        return None
+
+
 class FakeRunningWorker:
     def is_alive(self) -> bool:
         return True
@@ -182,8 +187,10 @@ class MainWindowStateTests(unittest.TestCase):
         window.empty_detail_var = DummyVar("")
         window.progress_var = DummyVar(0)
         window.status_frame = DummyWidget()
+        window.status_accent = DummyWidget()
         window.status_heading_label = DummyWidget()
         window.status_detail_label = DummyWidget()
+        window.style = DummyStyle()
         window.empty_frame = DummyWidget()
         window.table_container = DummyWidget()
         window.button_search = DummyWidget()
