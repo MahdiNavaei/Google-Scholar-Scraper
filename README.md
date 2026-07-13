@@ -1,90 +1,104 @@
 # Google Scholar Scraper V2.0.0
 
-Google Scholar Scraper is a lightweight desktop application for extracting,
-ranking, reviewing, and exporting Google Scholar search results.
+A Windows desktop app for extracting, ranking, reviewing, and exporting Google
+Scholar search results.
 
-It is designed as a practical local research utility: requests-based extraction,
-explicit failure states, local lexical relevance ranking, a responsive Windows
-desktop UI, and Excel/CSV export. It does not use LLMs, external AI APIs, model
-downloads, GPU acceleration, browser automation, proxy rotation, CAPTCHA solving,
-or CAPTCHA bypass.
+Google Scholar Scraper V2 is a local research utility for collecting Scholar
+result pages, removing duplicates, applying optional lexical relevance ranking,
+and exporting reviewed results to Excel or CSV. It is source-available for
+noncommercial use under the PolyForm Noncommercial License 1.0.0, with separate
+commercial licensing available.
 
-![Google Scholar Scraper V2 desktop UI](docs/assets/google-scholar-scraper-v2.png)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Python](https://img.shields.io/badge/python-3.9%2B-3776AB)
+[![CI](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/ci.yml)
+[![Windows Build](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/build-windows.yml/badge.svg)](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/build-windows.yml)
+![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-lightgrey)
 
-## V2 Highlights
+![Google Scholar Scraper V2 desktop interface](docs/assets/google-scholar-scraper-v2.png)
 
-- Responsive Tkinter/ttk desktop application.
-- Background extraction worker with progress reporting and cooperative cancellation.
-- Explicit states for success, partial success, no results, rate limits, blocked/challenge pages, network errors, parser errors, and cancellation.
-- Partial-result preservation when later pages fail or the user cancels.
-- Deterministic duplicate removal and article validation.
-- Optional local lexical relevance ranking.
-- Excel and CSV export after result review.
-- Windows portable ZIP and Inno Setup installer build definitions.
-- Source-available noncommercial licensing with separate commercial licensing available.
+Google Scholar Scraper is not affiliated with Google. It does not solve CAPTCHA,
+bypass access controls, rotate proxies, use account credentials, or use stealth
+browser automation.
+
+## Why V2 Exists
+
+The original goal is simple: make small-scale academic result collection easier
+without turning the project into an unsafe crawler or a heavyweight data
+platform. V2 focuses on a dependable desktop workflow, explicit failure states,
+local-only ranking, deterministic exports, and Windows packaging.
+
+## At A Glance
+
+| Audience | What V2 Provides |
+| --- | --- |
+| Normal users | Search, review, open links, and export results. |
+| Developers | Focused Python modules, tests, and Windows build scripts. |
+| Researchers | Ranking, deduplication, partial results, and clear limits. |
+| Commercial evaluators | Source-available code and a clear license path. |
 
 ## Core Features
 
-- Enter a Google Scholar query and page count.
-- Review collected articles in a desktop table.
-- Open article links from the result table.
+- Search Google Scholar by query and page count.
+- Review collected articles in a responsive Tkinter/ttk desktop table.
+- Open result links directly from the table.
 - Enable or disable local relevance ranking.
+- Preserve usable partial results when later pages fail or the user cancels.
 - Export reviewed results to Excel or CSV.
-- Preserve usable results when extraction stops early.
-- Run from source or packaged Windows artifacts.
+- Run from source, portable Windows ZIP, or Windows installer artifacts.
 
-## Smart Relevance Ranking
+## Local Relevance Ranking
 
-Smart Relevance Ranking is a local lexical scoring feature. It compares the user
-query with article title and author/source metadata using deterministic token
-weights and TF-IDF-style cosine scoring.
+Relevance ranking is optional and runs locally. It compares the query with
+article title and author/source metadata using deterministic token weighting and
+TF-IDF-style cosine scoring.
 
-The score is shown as `Relevance` and is intended only as a review aid. It is
-not a semantic understanding score, confidence value, citation-quality score, or
-scientific assessment of a paper.
+The score is shown as `Relevance` in the UI and `Relevance Score` in exports.
+It is a review aid, not a semantic understanding score, confidence value,
+citation-quality metric, or scientific assessment of a paper.
 
-Ranking runs locally:
+Ranking does not use:
 
-- No LLM.
-- No external AI API.
-- No embedding service.
-- No model download.
-- No GPU requirement.
+- LLMs.
+- External AI APIs.
+- Embedding services.
+- Model downloads.
+- GPU acceleration.
 
-## Reliability And Failure States
+## Reliability Model
 
 The scraper uses a reusable HTTP session, explicit timeouts, conservative
-request headers, bounded retries, and request pacing. Google Scholar access can
-still be rate-limited, blocked, challenged, or affected by markup changes.
+request headers, bounded retries, and request pacing. Google Scholar can still
+rate-limit, block, challenge, or change markup without notice.
 
-The application reports these states instead of silently treating them as
-successful empty results:
+V2 reports these states instead of treating every response as a successful
+empty result:
 
-- `SUCCESS`
-- `PARTIAL_SUCCESS`
-- `NO_RESULTS`
-- `RATE_LIMITED`
-- `BLOCKED`
-- `NETWORK_ERROR`
-- `PARSING_ERROR`
-- `CANCELLED`
-
-The application does not bypass Google protections. It does not solve CAPTCHA,
-rotate proxies, use account credentials, or use stealth browser automation.
+| Status | Meaning |
+| --- | --- |
+| `SUCCESS` | Requested pages completed and results were collected. |
+| `PARTIAL_SUCCESS` | Some pages completed, then extraction stopped early. |
+| `NO_RESULTS` | Google Scholar returned no results for the query. |
+| `RATE_LIMITED` | Google Scholar temporarily limited the request. |
+| `BLOCKED` | Google Scholar returned a block, consent, or challenge page. |
+| `NETWORK_ERROR` | Timeout, connection issue, or bad HTTP response. |
+| `PARSING_ERROR` | The response could not be parsed safely. |
+| `CANCELLED` | The user cancelled extraction. |
 
 ## Desktop Workflow
 
 1. Enter a search query.
 2. Choose the number of Google Scholar result pages to scan.
-3. Optionally choose an export folder.
+3. Choose an export folder.
 4. Enable or disable `Rank by relevance`.
 5. Click `Search Scholar`.
 6. Review results in the table.
-7. Export to Excel or CSV.
+7. Open individual links as needed.
+8. Export to Excel or CSV.
 
 The UI remains responsive while extraction runs.
 
-## Windows Installation Options
+## Installation Options
 
 Expected V2.0.0 release artifacts:
 
@@ -92,36 +106,34 @@ Expected V2.0.0 release artifacts:
 - `Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe`
 - `SHA256SUMS.txt`
 
-Release artifacts are generated by the Windows build workflow and will be
-attached to the V2.0.0 GitHub Release. No public download URL is listed here
-until the release exists.
+Release artifacts are generated by the Windows build workflow and are intended
+to be attached to the V2.0.0 GitHub Release. No public download URL is listed
+here until the release exists.
 
-## Portable Usage
+### Portable Windows ZIP
 
-1. Download `Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip` from the GitHub Release.
+1. Download the portable ZIP from the GitHub Release after it is published.
 2. Verify the ZIP against `SHA256SUMS.txt`.
 3. Extract the ZIP.
 4. Run `GoogleScholarScraper.exe` from the extracted folder.
 
 The portable build does not require a source checkout.
 
-## Installer Usage
+### Windows Installer
 
-1. Download `Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe` from the GitHub Release.
+1. Download the installer from the GitHub Release after it is published.
 2. Verify the installer against `SHA256SUMS.txt`.
 3. Run the installer.
-4. Launch Google Scholar Scraper from the Start Menu or optional desktop shortcut.
+4. Launch it from the Start Menu or optional desktop shortcut.
 
 The installer is built with Inno Setup and installs per user.
 
-## Running From Source
+### Run From Source
 
 Requirements:
 
 - Python 3.9 or newer.
 - Tkinter available in the Python installation.
-
-Install and run:
 
 ```powershell
 python -m pip install --upgrade pip
@@ -129,47 +141,41 @@ python -m pip install .
 python -m google_scholar_scraper
 ```
 
-Legacy launcher:
-
-```powershell
-python prog.py
-```
-
 ## Export Formats
 
-Excel export:
-
-- Default filename: `scholar_articles.xlsx`
-- Writer: `openpyxl`
-
-CSV export:
-
-- Default filename: `scholar_articles.csv`
-- Encoding: UTF-8 with BOM for practical Windows Excel compatibility.
+| Format | Default filename | Notes |
+| --- | --- | --- |
+| Excel | `scholar_articles.xlsx` | Written with `openpyxl`. |
+| CSV | `scholar_articles.csv` | UTF-8 with BOM for Windows Excel. |
 
 Exported columns:
 
-- Title
-- Authors
-- Link
-- Relevance Score
+- `Title`
+- `Authors`
+- `Link`
+- `Relevance Score`
+
+When ranking is disabled, `Relevance Score` is left blank instead of inventing
+a score.
 
 ## Google Scholar Limitations
 
 Google Scholar is an external service and may change behavior without notice.
-Automated access can be rate-limited, blocked, or challenged. This project does
-not claim official Google affiliation and does not guarantee uninterrupted
-access.
+Automated access can be rate-limited, blocked, challenged, or affected by markup
+changes.
 
 Use conservative page counts and respect applicable terms, policies, and laws.
+This project does not guarantee uninterrupted access or complete coverage of
+Google Scholar results.
 
 ## Privacy And Local Processing
 
 - Ranking is performed locally.
 - Exports are written to the selected local folder.
 - No telemetry or analytics collection is implemented.
-- No external AI service receives the query or result data.
-- Normal operation makes HTTP requests to Google Scholar for the query entered by the user.
+- No external AI service receives query or result data.
+- Normal operation makes HTTP requests to Google Scholar for the query entered
+  by the user.
 
 ## Development Setup
 
@@ -186,14 +192,14 @@ Optional build dependency:
 python -m pip install pyinstaller
 ```
 
-## Running Tests
+Run the deterministic test suite:
 
 ```powershell
 python -m unittest discover -s tests
 ```
 
-The deterministic test suite uses saved fixtures and mocked responses. It does
-not require live Google Scholar access.
+The tests use saved fixtures and mocked responses. They do not require live
+Google Scholar access.
 
 ## Building Windows Artifacts
 
@@ -210,9 +216,10 @@ building, then creates:
 - Portable ZIP under `dist/release/`
 - `SHA256SUMS.txt`
 
-If Inno Setup is installed locally, the same script also compiles the installer.
-The Windows GitHub Actions build workflow is configured to install or locate
-Inno Setup and fail if the installer cannot be built.
+If Inno Setup is installed locally and `-SkipInstaller` is not used, the same
+script also compiles the installer. The Windows GitHub Actions build workflow is
+configured to install or locate Inno Setup and fail if the installer cannot be
+built.
 
 ## Project Structure
 
@@ -237,21 +244,34 @@ scripts/                  Windows build helper
 docs/                     Release and audit documentation
 ```
 
+## Release And Documentation
+
+- [Release notes](docs/RELEASE_NOTES_V2.0.0.md)
+- [V2 release checklist](docs/V2_RELEASE_CHECKLIST.md)
+- [Changelog](CHANGELOG.md)
+- [PyInstaller spec](packaging/pyinstaller/GoogleScholarScraper.spec)
+- [Inno Setup definition](installer/GoogleScholarScraper.iss)
+- [Windows build script](scripts/build_windows.ps1)
+
 ## License
 
 Google Scholar Scraper is source-available for noncommercial use under the
-PolyForm Noncommercial License 1.0.0. See `LICENSE`.
+[PolyForm Noncommercial License 1.0.0](LICENSE).
 
-This is not an OSI-approved open-source license.
+This is not an OSI-approved open-source license. Commercial use requires a
+separate written commercial license from Mahdi Navaei. See
+[COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md).
 
-## Commercial Licensing
+Commercial licensing, sponsorship, integration discussions, and custom
+collaboration inquiries are welcome. For public project questions and bug
+reports, use GitHub Issues. For commercial discussions, contact Mahdi Navaei
+through the repository owner or GitHub profile channel unless another
+owner-approved business contact is added later.
 
-Commercial use requires a separate written commercial license from Mahdi Navaei.
-See `COMMERCIAL_LICENSE.md`.
-
-Commercial licensing, sponsorship, integration inquiries, and custom commercial
-collaboration are welcome.
+Bug reports and focused issue reports are welcome. Larger code contribution
+policy is intentionally conservative until a licensing and assignment process is
+defined.
 
 ## Attribution
 
-See `NOTICE` for attribution and distribution notice information.
+See [NOTICE](NOTICE) for attribution and distribution notice information.
