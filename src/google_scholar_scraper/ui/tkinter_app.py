@@ -6,7 +6,7 @@ import queue
 import threading
 import webbrowser
 import tkinter as tk
-from tkinter import filedialog, font as tkfont, ttk
+from tkinter import filedialog, font as tkfont, messagebox, ttk
 
 from google_scholar_scraper import __version__
 from google_scholar_scraper.exporters import save_to_csv, save_to_excel
@@ -152,6 +152,11 @@ def article_row(article: Article) -> tuple[str, str, str, str]:
     score = "" if article.relevance_score is None else f"{article.relevance_score:.1f}"
     link = "Open link" if article.link else "No link"
     return (article.title, article.authors, score, link)
+
+
+def export_error_message(exc: OSError) -> str:
+    detail = str(exc).strip() or exc.__class__.__name__
+    return f"Export failed: {detail}"
 
 
 class SearchWorker(threading.Thread):
@@ -522,7 +527,11 @@ class MainWindow:
 
         folder = self.current_request.output_folder if self.current_request else self.output_folder_var.get().strip()
         path = export_path(folder)
-        save_to_excel(self.current_articles, path)
+        try:
+            save_to_excel(self.current_articles, path)
+        except OSError as exc:
+            self._handle_export_error(exc)
+            return
         self.status_var.set(f"Exported {len(self.current_articles)} results to {path}.")
 
     def export_csv_results(self) -> None:
@@ -532,7 +541,11 @@ class MainWindow:
 
         folder = self.current_request.output_folder if self.current_request else self.output_folder_var.get().strip()
         path = export_path(folder, DEFAULT_CSV_FILENAME)
-        save_to_csv(self.current_articles, path)
+        try:
+            save_to_csv(self.current_articles, path)
+        except OSError as exc:
+            self._handle_export_error(exc)
+            return
         self.status_var.set(f"Exported {len(self.current_articles)} results to {path}.")
 
     def open_selected_link(self, _event=None) -> None:
@@ -545,6 +558,14 @@ class MainWindow:
         link = self.current_articles[index].link
         if link:
             webbrowser.open(link)
+
+    def _handle_export_error(self, exc: OSError) -> None:
+        message = export_error_message(exc)
+        self.status_var.set(message)
+        try:
+            messagebox.showerror("Export failed", message)
+        except tk.TclError:
+            pass
 
     def on_close(self) -> None:
         if self._is_running() and self.cancel_event is not None:

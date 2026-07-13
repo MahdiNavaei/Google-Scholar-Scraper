@@ -18,6 +18,7 @@ from google_scholar_scraper.ui.tkinter_app import (
     result_summary,
     status_message,
     validate_search_inputs,
+    export_error_message,
 )
 
 
@@ -124,6 +125,9 @@ class UiHelperTests(unittest.TestCase):
         )
 
         self.assertEqual(result_summary(result), "1 result found | 2/3 pages completed | 1 duplicate removed | 1 invalid record removed")
+
+    def test_export_error_message_is_user_facing(self) -> None:
+        self.assertEqual(export_error_message(PermissionError("denied")), "Export failed: denied")
 
 
 class WorkerTests(unittest.TestCase):
@@ -301,6 +305,21 @@ class MainWindowStateTests(unittest.TestCase):
 
         save_to_excel.assert_called_once_with([Article("A")], expected_path)
 
+    def test_excel_export_failure_updates_status_without_crashing(self) -> None:
+        window = self.make_window()
+        window.current_articles = [Article("A")]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            window.current_request = SearchRequest("query", 1, True, temp_dir)
+
+            with (
+                patch("google_scholar_scraper.ui.tkinter_app.save_to_excel", side_effect=PermissionError("denied")),
+                patch("google_scholar_scraper.ui.tkinter_app.messagebox.showerror") as showerror,
+            ):
+                window.export_excel_results()
+
+        self.assertEqual(window.status_var.get(), "Export failed: denied")
+        showerror.assert_called_once_with("Export failed", "Export failed: denied")
+
     def test_csv_export_uses_final_displayed_articles(self) -> None:
         window = self.make_window()
         window.current_articles = [Article("A")]
@@ -312,6 +331,21 @@ class MainWindowStateTests(unittest.TestCase):
                 window.export_csv_results()
 
         save_to_csv.assert_called_once_with([Article("A")], expected_path)
+
+    def test_csv_export_failure_updates_status_without_crashing(self) -> None:
+        window = self.make_window()
+        window.current_articles = [Article("A")]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            window.current_request = SearchRequest("query", 1, True, temp_dir)
+
+            with (
+                patch("google_scholar_scraper.ui.tkinter_app.save_to_csv", side_effect=OSError("disk full")),
+                patch("google_scholar_scraper.ui.tkinter_app.messagebox.showerror") as showerror,
+            ):
+                window.export_csv_results()
+
+        self.assertEqual(window.status_var.get(), "Export failed: disk full")
+        showerror.assert_called_once_with("Export failed", "Export failed: disk full")
 
 
 if __name__ == "__main__":

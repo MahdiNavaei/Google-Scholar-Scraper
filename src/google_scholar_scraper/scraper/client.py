@@ -345,7 +345,7 @@ def _with_partial_if_needed(
         invalid_count = invalid_articles_removed + deduped.invalid_removed
         message = (
             f"Extraction stopped early on page {failure_page}: "
-            f"{result.message} Exported {len(ranked)} collected articles."
+            f"{result.message} Preserved {len(ranked)} collected articles for review and export."
         )
         if duplicate_count:
             message += f" Removed {duplicate_count} duplicate articles."

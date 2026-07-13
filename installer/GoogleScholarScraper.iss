@@ -1,8 +1,8 @@
 #define MyAppName "Google Scholar Scraper"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.0.1"
 #define MyAppPublisher "Mahdi Navaei"
 #define MyAppExeName "GoogleScholarScraper.exe"
-#define MyAppDistDir "..\dist\Google-Scholar-Scraper-v2.0.0"
+#define MyAppDistDir "..\dist\Google-Scholar-Scraper-v2.0.1"
 
 [Setup]
 AppId={{6D2F6142-2475-44A6-B0D3-2016C1B2D77A}
@@ -14,7 +14,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=..\dist\installer
-OutputBaseFilename=Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64
+OutputBaseFilename=Google-Scholar-Scraper-v2.0.1-Setup-Windows-x64
 Compression=lzma
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible

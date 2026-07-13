@@ -140,6 +140,8 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(result.failure_page, 2)
         self.assertEqual(len(result.articles), 1)
         self.assertEqual(result.diagnostic, ExtractionStatus.RATE_LIMITED.value)
+        self.assertIn("Preserved 1 collected articles for review and export.", result.message)
+        self.assertNotIn("Exported", result.message)
 
     def test_partial_success_removes_duplicates_from_successful_pages(self) -> None:
         session = FakeSession(

@@ -22,7 +22,7 @@ jobs:
       - name: Install project from metadata
         run: |
           python -m pip install --upgrade pip
-          python -m pip install .
+          python -m pip install -c constraints/release-2.0.1.txt .
 
       - name: Compile source and tests
         run: python -m compileall prog.py src tests
@@ -33,7 +33,7 @@ jobs:
           import google_scholar_scraper
           from google_scholar_scraper.app import main
           from google_scholar_scraper.ui.tkinter_app import MainWindow
-          assert google_scholar_scraper.__version__ == "2.0.0"
+          assert google_scholar_scraper.__version__ == "2.0.1"
           assert callable(main)
           assert MainWindow.__name__ == "MainWindow"
 

@@ -5,7 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$Version = "2.0.0"
+$Version = "2.0.1"
 $AppDirName = "Google-Scholar-Scraper-v$Version"
 $PortableName = "Google-Scholar-Scraper-v$Version-Portable-Windows-x64.zip"
 $InstallerName = "Google-Scholar-Scraper-v$Version-Setup-Windows-x64.exe"
@@ -66,6 +66,30 @@ function Get-Sha256 {
     }
 }
 
+function Copy-DistributionNotices {
+    param([Parameter(Mandatory=$true)][string]$AppDir)
+    foreach ($name in @("LICENSE", "NOTICE", "COMMERCIAL_LICENSE.md", "THIRD_PARTY_NOTICES.txt")) {
+        $source = Join-Path $ProjectRoot $name
+        $target = Join-Path $AppDir $name
+        if (-not (Test-Path -LiteralPath $source)) {
+            throw "Required distribution notice is missing from source: $source"
+        }
+        Copy-Item -LiteralPath $source -Destination $target -Force
+    }
+}
+
+function Remove-OptionalHttp2Metadata {
+    param([Parameter(Mandatory=$true)][string]$AppDir)
+    $internalDir = Join-Path $AppDir "_internal"
+    if (-not (Test-Path -LiteralPath $internalDir)) {
+        return
+    }
+    foreach ($pattern in @("h2-*.dist-info", "hpack-*.dist-info", "hyperframe-*.dist-info")) {
+        Get-ChildItem -LiteralPath $internalDir -Directory -Filter $pattern -ErrorAction SilentlyContinue |
+            Remove-Item -Recurse -Force
+    }
+}
+
 Set-Location $ProjectRoot
 Remove-GeneratedPath $BuildDir
 Remove-GeneratedPath $DistDir
@@ -77,8 +101,11 @@ $ExePath = Join-Path $DistDir "$AppDirName\GoogleScholarScraper.exe"
 if (-not (Test-Path -LiteralPath $ExePath)) {
     throw "Expected executable was not created: $ExePath"
 }
+$AppDir = Join-Path $DistDir $AppDirName
+Remove-OptionalHttp2Metadata $AppDir
+Copy-DistributionNotices $AppDir
 
-Compress-Archive -Path (Join-Path $DistDir $AppDirName) -DestinationPath $PortablePath -Force
+Compress-Archive -Path $AppDir -DestinationPath $PortablePath -Force
 if (-not (Test-Path -LiteralPath $PortablePath)) {
     throw "Expected portable archive was not created: $PortablePath"
 }
@@ -95,7 +122,7 @@ if ($InnoCompiler -and -not $SkipInstaller) {
         throw "Expected installer was not created: $InstallerPath"
     }
     $installerHash = Get-Sha256 $InstallerPath
-    $checksums += "$installerHash  installer/$InstallerName"
+    $checksums += "$installerHash  $InstallerName"
 } else {
     Write-Host "Inno Setup compiler not found or installer build skipped; installer definition was not compiled."
 }

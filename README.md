@@ -1,4 +1,4 @@
-# Google Scholar Scraper V2.0.0
+# Google Scholar Scraper
 
 A Windows desktop app for extracting, ranking, reviewing, and exporting Google
 Scholar search results.
@@ -9,8 +9,9 @@ and exporting reviewed results to Excel or CSV. It is source-available for
 noncommercial use under the PolyForm Noncommercial License 1.0.0, with separate
 commercial licensing available.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![Python](https://img.shields.io/badge/python-3.9%2B-3776AB)
+![Version](https://img.shields.io/badge/source-2.0.1--rc-blue)
+![Latest Release](https://img.shields.io/badge/latest%20release-2.0.0-green)
+![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)
 [![CI](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/ci.yml)
 [![Windows Build](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/build-windows.yml/badge.svg)](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/build-windows.yml)
 ![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-lightgrey)
@@ -118,6 +119,10 @@ Checksums are published with the release:
 Release page:
 [Google Scholar Scraper V2.0.0](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/tag/v2.0.0)
 
+The current source tree is prepared as a V2.0.1 release candidate. Until a
+V2.0.1 release is explicitly published, use the V2.0.0 download links above for
+stable public artifacts.
+
 ### Portable Windows ZIP
 
 1. Download the portable ZIP from the V2.0.0 release.
@@ -140,7 +145,7 @@ The installer is built with Inno Setup and installs per user.
 
 Requirements:
 
-- Python 3.9 or newer.
+- Python 3.10 or newer.
 - Tkinter available in the Python installation.
 
 ```powershell
@@ -197,7 +202,7 @@ python -m pip install -e .
 Optional build dependency:
 
 ```powershell
-python -m pip install pyinstaller
+python -m pip install -c constraints\release-2.0.1.txt pyinstaller
 ```
 
 Run the deterministic test suite:
@@ -220,7 +225,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build_windows.ps1
 The script removes only known generated outputs (`build/` and `dist/`) before
 building, then creates:
 
-- PyInstaller `onedir` application under `dist/Google-Scholar-Scraper-v2.0.0/`
+- PyInstaller `onedir` application under `dist/Google-Scholar-Scraper-v2.0.1/`
 - Portable ZIP under `dist/release/`
 - `SHA256SUMS.txt`
 
@@ -228,6 +233,9 @@ If Inno Setup is installed locally and `-SkipInstaller` is not used, the same
 script also compiles the installer. The Windows GitHub Actions build workflow is
 configured to install or locate Inno Setup and fail if the installer cannot be
 built.
+
+Portable and installer distributions include `LICENSE`, `NOTICE`,
+`COMMERCIAL_LICENSE.md`, and `THIRD_PARTY_NOTICES.txt`.
 
 ## Project Structure
 
@@ -255,8 +263,9 @@ docs/                     Release and audit documentation
 ## Release And Documentation
 
 - [Release notes](docs/RELEASE_NOTES_V2.0.0.md)
-- [V2 release checklist](docs/V2_RELEASE_CHECKLIST.md)
+- [V2 release verification record](docs/V2_RELEASE_CHECKLIST.md)
 - [Changelog](CHANGELOG.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.txt)
 - [PyInstaller spec](packaging/pyinstaller/GoogleScholarScraper.spec)
 - [Inno Setup definition](installer/GoogleScholarScraper.iss)
 - [Windows build script](scripts/build_windows.ps1)

@@ -1,57 +1,45 @@
-# V2.0.0 Release Checklist
+# V2.0.0 Release Verification Record
 
-Do not publish a tag or GitHub Release until the owner explicitly approves it.
+This document is the completed verification record for the published V2.0.0
+release. It is not a forward-looking checklist and does not authorize any
+future tag or GitHub Release publication.
 
-## Repository
+## Release Baseline
 
-- [ ] Tracked worktree is clean.
-- [ ] Version is `2.0.0` across package metadata, UI title, packaging config, installer config, README, changelog, release notes, and artifact names.
-- [ ] Full deterministic test suite passes.
-- [ ] README is current.
-- [ ] `LICENSE` is present.
-- [ ] `NOTICE` is present.
-- [ ] `COMMERCIAL_LICENSE.md` is present.
-- [ ] `CHANGELOG.md` is current.
-- [ ] `docs/RELEASE_NOTES_V2.0.0.md` is current.
+- Published release: `v2.0.0`
+- Source commit intended for the release tag: `7336b8d`
+- Release artifact family:
+  - `Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip`
+  - `Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe`
+  - `SHA256SUMS.txt`
 
-## UI
+## Verified Evidence
 
-- [ ] Final UI from `3dcb420` or later release-readiness-only corrections is frozen.
-- [ ] `docs/assets/google-scholar-scraper-v2.png` is current.
-- [ ] Application-controlled UI text is English-only.
+- Deterministic unit tests passed before the V2.0.0 release gate.
+- The Windows artifact workflow completed and produced the portable ZIP,
+  installer executable, and checksum file.
+- The portable ZIP was downloaded from the public V2.0.0 release and verified
+  against the published checksum file.
+- The portable executable launched successfully from the release ZIP.
+- The packaged smoke command produced non-empty Excel and CSV exports.
+- The installer artifact was downloaded from the public V2.0.0 release and
+  verified against the published checksum file.
+- The installer file was confirmed as a non-empty Windows PE executable.
 
-## Build
+## V2.0.0 Scope Limitations
 
-- [ ] `build/` and `dist/` are removed before final packaging.
-- [ ] Final PyInstaller `onedir` build succeeds from current source.
-- [ ] Final Portable ZIP exists.
-- [ ] Final Installer exists.
-- [ ] Final `SHA256SUMS.txt` exists.
-- [ ] Artifact names are correct.
+- A full install-launch-export-uninstall smoke was not performed before the
+  V2.0.0 release. V2.0.1 adds that lifecycle check to the remote Windows build
+  workflow.
+- V2.0.0 package metadata claimed Python 3.9+, but the source uses Python 3.10
+  type syntax. V2.0.1 corrects the declared minimum to Python 3.10+.
+- V2.0.0 portable and installer layouts did not include all repository license
+  and notice files at the distribution root. V2.0.1 adds those files.
+- V2.0.0 did not include a consolidated third-party notices file. V2.0.1 adds
+  `THIRD_PARTY_NOTICES.txt`.
 
-## Runtime
+## Release Governance
 
-- [ ] Packaged app launches.
-- [ ] Final UI is visible.
-- [ ] Ranking-enabled mode works.
-- [ ] Ranking-disabled mode works.
-- [ ] Cancellation works.
-- [ ] Partial-result behavior works.
-- [ ] Excel export works.
-- [ ] CSV export works.
-
-## Artifact Consistency
-
-- [ ] Portable and Installer are built from the same final source baseline.
-- [ ] Installer contains the current final packaged app.
-- [ ] No stale earlier artifact is reused.
-
-## Release
-
-- [ ] Inspect artifacts.
-- [ ] Verify SHA-256 checksums.
-- [ ] Create tag only after owner approval.
-- [ ] Create GitHub Release only after owner approval.
-- [ ] Attach Portable ZIP.
-- [ ] Attach Installer.
-- [ ] Attach `SHA256SUMS.txt`.
+Do not move, delete, replace, or republish the V2.0.0 tag, release, or assets.
+Future patch work must use a new version, commit, workflow run, and artifact
+set.

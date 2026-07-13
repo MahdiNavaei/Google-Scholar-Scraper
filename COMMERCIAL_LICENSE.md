@@ -17,4 +17,5 @@ Examples of uses that may require a separate commercial license include:
 
 This document does not grant commercial rights, set fixed prices, or create
 automatic approval conditions. Contact Mahdi Navaei for commercial licensing,
-sponsorship, integration, or custom collaboration inquiries.
+sponsorship, integration, or custom collaboration inquiries:
+M.Navaei1367@gmail.com

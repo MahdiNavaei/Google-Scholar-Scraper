@@ -8,10 +8,10 @@ jobs:
     runs-on: windows-latest
 
     env:
-      VERSION: "2.0.0"
-      APP_DIR: Google-Scholar-Scraper-v2.0.0
-      PORTABLE_NAME: Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip
-      INSTALLER_NAME: Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe
+      VERSION: "2.0.1"
+      APP_DIR: Google-Scholar-Scraper-v2.0.1
+      PORTABLE_NAME: Google-Scholar-Scraper-v2.0.1-Portable-Windows-x64.zip
+      INSTALLER_NAME: Google-Scholar-Scraper-v2.0.1-Setup-Windows-x64.exe
 
     steps:
       - name: Check out repository
@@ -25,7 +25,7 @@ jobs:
       - name: Install runtime and build dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install . pyinstaller
+          python -m pip install -c constraints/release-2.0.1.txt . pyinstaller
 
       - name: Compile source and tests
         run: python -m compileall prog.py src tests
@@ -46,12 +46,44 @@ jobs:
       - name: Build PyInstaller onedir application
         run: python -m PyInstaller packaging\pyinstaller\GoogleScholarScraper.spec --noconfirm --clean
 
+      - name: Copy distribution notices
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $appDir = "dist\$env:APP_DIR"
+          $internalDir = Join-Path $appDir "_internal"
+          if (Test-Path -LiteralPath $internalDir) {
+            foreach ($pattern in @("h2-*.dist-info", "hpack-*.dist-info", "hyperframe-*.dist-info")) {
+              Get-ChildItem -LiteralPath $internalDir -Directory -Filter $pattern -ErrorAction SilentlyContinue |
+                Remove-Item -Recurse -Force
+            }
+          }
+          foreach ($name in @("LICENSE", "NOTICE", "COMMERCIAL_LICENSE.md", "THIRD_PARTY_NOTICES.txt")) {
+            $source = Join-Path (Resolve-Path ".") $name
+            $target = Join-Path $appDir $name
+            if (-not (Test-Path -LiteralPath $source)) {
+              throw "Required distribution notice is missing from source: $source"
+            }
+            Copy-Item -LiteralPath $source -Destination $target -Force
+          }
+
       - name: Verify packaged executable
         shell: pwsh
         run: |
           $exe = "dist\$env:APP_DIR\GoogleScholarScraper.exe"
           if (-not (Test-Path -LiteralPath $exe)) {
             throw "Expected packaged executable missing: $exe"
+          }
+          foreach ($name in @("LICENSE", "NOTICE", "COMMERCIAL_LICENSE.md", "THIRD_PARTY_NOTICES.txt")) {
+            $path = Join-Path "dist\$env:APP_DIR" $name
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Required distribution notice missing: $path"
+            }
+          }
+          $unexpected = Get-ChildItem -LiteralPath "dist\$env:APP_DIR\_internal" -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like "h2-*.dist-info" -or $_.Name -like "hpack-*.dist-info" -or $_.Name -like "hyperframe-*.dist-info" }
+          if ($unexpected) {
+            throw "Unexpected optional HTTP/2 metadata found: $($unexpected.Name -join ', ')"
           }
 
       - name: Build Portable ZIP
@@ -120,6 +152,55 @@ jobs:
             }
           }
 
+      - name: Installer install-launch-export-uninstall smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installer = "dist\installer\$env:INSTALLER_NAME"
+          $installRoot = Join-Path $env:RUNNER_TEMP "google-scholar-scraper-install"
+          $smokeDir = Join-Path $env:RUNNER_TEMP "google-scholar-scraper-installed-smoke"
+          Remove-Item -LiteralPath $installRoot -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -LiteralPath $smokeDir -Recurse -Force -ErrorAction SilentlyContinue
+
+          $install = Start-Process -FilePath $installer -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/NOICONS", "/DIR=$installRoot") -Wait -PassThru
+          if ($install.ExitCode -ne 0) {
+            throw "Installer exited with $($install.ExitCode)."
+          }
+
+          $exe = Join-Path $installRoot "GoogleScholarScraper.exe"
+          if (-not (Test-Path -LiteralPath $exe)) {
+            throw "Installed executable missing: $exe"
+          }
+          foreach ($name in @("LICENSE", "NOTICE", "COMMERCIAL_LICENSE.md", "THIRD_PARTY_NOTICES.txt")) {
+            $path = Join-Path $installRoot $name
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Installed distribution notice missing: $path"
+            }
+          }
+
+          $process = Start-Process -FilePath $exe -ArgumentList @("--packaging-smoke", $smokeDir) -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Installed smoke exited with $($process.ExitCode)."
+          }
+          foreach ($name in @("packaging-smoke.xlsx", "packaging-smoke.csv")) {
+            $path = Join-Path $smokeDir $name
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing installed smoke export: $path"
+            }
+            if ((Get-Item -LiteralPath $path).Length -le 0) {
+              throw "Installed smoke export is empty: $path"
+            }
+          }
+
+          $uninstaller = Join-Path $installRoot "unins000.exe"
+          if (-not (Test-Path -LiteralPath $uninstaller)) {
+            throw "Uninstaller missing: $uninstaller"
+          }
+          $uninstall = Start-Process -FilePath $uninstaller -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART") -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) {
+            throw "Uninstaller exited with $($uninstall.ExitCode)."
+          }
+
       - name: Generate SHA-256 checksums
         shell: pwsh
         run: |
@@ -155,9 +236,9 @@ jobs:
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: google-scholar-scraper-v2.0.0-windows-artifacts
+          name: google-scholar-scraper-v2.0.1-windows-artifacts
           path: |
-            dist/release/Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip
-            dist/installer/Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe
+            dist/release/Google-Scholar-Scraper-v2.0.1-Portable-Windows-x64.zip
+            dist/installer/Google-Scholar-Scraper-v2.0.1-Setup-Windows-x64.exe
             dist/release/SHA256SUMS.txt
           if-no-files-found: error

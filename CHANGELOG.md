@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+
+- Corrected the declared minimum Python version to 3.10, matching the codebase's use of modern type syntax.
+- Reworded partial-success extraction messages so they no longer imply an export occurred automatically.
+- Added UI error handling for Excel and CSV export filesystem failures.
+- Aligned local and CI checksum file entries so installer hashes use the plain artifact filename.
+
+### Changed
+
+- Added exact V2.0.1 release-candidate dependency constraints.
+- Added root-level third-party notices for the expected Windows distribution dependency set.
+- Included `LICENSE`, `NOTICE`, `COMMERCIAL_LICENSE.md`, and `THIRD_PARTY_NOTICES.txt` in PyInstaller portable and installer layouts.
+- Added remote Windows installer install-launch-export-uninstall smoke coverage.
+- Improved project metadata for package consumers and repository presentation.
+
 ## 2.0.0
 
 ### Added
