@@ -4,6 +4,7 @@ import requests
 
 from google_scholar_scraper.dedupe import deduplicate_articles
 from google_scholar_scraper.models import Article, ExtractionResult, ExtractionStatus
+from google_scholar_scraper.ranking import ranked_articles
 from google_scholar_scraper.scraper.parser import parse_scholar_articles, parse_scholar_page
 
 
@@ -75,6 +76,7 @@ def scrape_scholar(
     query: str,
     num_pages: int,
     client: ScholarClient | None = None,
+    ranking_enabled: bool = True,
 ) -> ExtractionResult:
     active_client = client or ScholarClient()
     articles: list[Article] = []
@@ -94,6 +96,8 @@ def scrape_scholar(
                 failure_page=page_number,
                 duplicates_removed=duplicates_removed,
                 invalid_articles_removed=invalid_articles_removed,
+                query=query,
+                ranking_enabled=ranking_enabled,
             )
 
         response = response_result
@@ -115,6 +119,8 @@ def scrape_scholar(
                 failure_page=page_number,
                 duplicates_removed=duplicates_removed,
                 invalid_articles_removed=invalid_articles_removed,
+                query=query,
+                ranking_enabled=ranking_enabled,
             )
 
         page_deduped = deduplicate_articles(page_result.articles)
@@ -145,6 +151,8 @@ def scrape_scholar(
     message = f"Extraction complete. Collected {len(articles)} articles."
     if duplicates_removed:
         message += f" Removed {duplicates_removed} duplicate articles."
+
+    articles = ranked_articles(query, articles, enabled=ranking_enabled)
 
     return ExtractionResult(
         status=ExtractionStatus.SUCCESS,
@@ -228,21 +236,24 @@ def _with_partial_if_needed(
     failure_page: int,
     duplicates_removed: int = 0,
     invalid_articles_removed: int = 0,
+    query: str = "",
+    ranking_enabled: bool = True,
 ) -> ExtractionResult:
     if articles:
         deduped = deduplicate_articles(articles)
+        ranked = ranked_articles(query, deduped.articles, enabled=ranking_enabled)
         duplicate_count = duplicates_removed + deduped.duplicates_removed
         invalid_count = invalid_articles_removed + deduped.invalid_removed
         message = (
             f"Extraction stopped early on page {failure_page}: "
-            f"{result.message} Exported {len(deduped.articles)} collected articles."
+            f"{result.message} Exported {len(ranked)} collected articles."
         )
         if duplicate_count:
             message += f" Removed {duplicate_count} duplicate articles."
 
         return ExtractionResult(
             status=ExtractionStatus.PARTIAL_SUCCESS,
-            articles=deduped.articles,
+            articles=ranked,
             requested_pages=requested_pages,
             successful_pages=successful_pages,
             failure_page=failure_page,

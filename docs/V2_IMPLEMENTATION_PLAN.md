@@ -457,9 +457,9 @@ Dependency decision:
 
 Recommendation:
 
-- Start with `scikit-learn` only if packaging size remains acceptable.
-- If executable size or packaging complexity becomes unacceptable, replace with a minimal local TF-IDF implementation before release.
-- Do not use embeddings, transformer models, model downloads, external APIs, or LLMs.
+- Use the standard-library TF-IDF and cosine-similarity implementation selected in Milestone 5.
+- Keep scores as bounded `0.0` to `100.0` lexical relevance values stored on `Article.relevance_score`.
+- Do not use `scikit-learn`, embeddings, transformer models, model downloads, external APIs, or LLMs.
 
 Explainability:
 

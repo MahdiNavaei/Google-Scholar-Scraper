@@ -58,3 +58,5 @@ The legacy launcher is also available: python prog.py.
 
 Note: Google Scholar may rate-limit or block automated requests. The application reports these states instead of treating them as a successful empty extraction.
 
+V2 includes local lexical relevance ranking. It does not use LLMs, model downloads, or external AI APIs.
+

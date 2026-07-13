@@ -22,6 +22,7 @@ def normalize_article(article: Article) -> Article:
         title=normalize_display_text(article.title),
         authors=normalize_display_text(article.authors),
         link=normalize_link(article.link),
+        relevance_score=article.relevance_score,
     )
 
 
@@ -125,4 +126,5 @@ def _merge_articles(existing: Article, incoming: Article) -> Article:
         title=existing.title or incoming.title,
         authors=existing.authors or incoming.authors,
         link=existing.link or incoming.link,
+        relevance_score=existing.relevance_score,
     )

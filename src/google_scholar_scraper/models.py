@@ -7,12 +7,14 @@ class Article:
     title: str
     authors: str = ""
     link: str = ""
+    relevance_score: float | None = None
 
-    def to_export_row(self) -> dict[str, str]:
+    def to_export_row(self) -> dict[str, object]:
         return {
             "Title": self.title,
             "Authors": self.authors,
             "Link": self.link,
+            "Relevance Score": "" if self.relevance_score is None else self.relevance_score,
         }
 
 

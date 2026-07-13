@@ -101,6 +101,17 @@ class ClientTests(unittest.TestCase):
         self.assertEqual([article.title for article in result.articles], ["Shared Title", "Unique Title"])
         self.assertEqual(result.articles[0].link, "https://example.edu/duplicate")
         self.assertIn("Removed 1 duplicate articles.", result.message)
+        self.assertIsNotNone(result.articles[0].relevance_score)
+
+    def test_ranking_disabled_preserves_deduplicated_scholar_order(self) -> None:
+        session = FakeSession([FakeResponse(DUPLICATE_HTML), FakeResponse(DUPLICATE_SECOND_PAGE_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=0)
+
+        result = scrape_scholar("shared title", 2, client=client, ranking_enabled=False)
+
+        self.assertEqual(result.status, ExtractionStatus.SUCCESS)
+        self.assertEqual([article.title for article in result.articles], ["Shared Title", "Unique Title"])
+        self.assertIsNone(result.articles[0].relevance_score)
 
     def test_later_page_rate_limit_preserves_partial_results(self) -> None:
         session = FakeSession([FakeResponse(BASIC_HTML), FakeResponse(RATE_LIMIT_HTML, 429)])
@@ -132,6 +143,7 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(len(result.articles), 2)
         self.assertEqual(result.duplicates_removed, 1)
         self.assertEqual(result.diagnostic, ExtractionStatus.RATE_LIMITED.value)
+        self.assertIsNotNone(result.articles[0].relevance_score)
 
     def test_rate_limited_first_page_is_not_success(self) -> None:
         session = FakeSession([FakeResponse(RATE_LIMIT_HTML, 429)])
@@ -157,6 +169,16 @@ class ClientTests(unittest.TestCase):
         result = scrape_scholar("query", 1, client=client)
 
         self.assertEqual(result.status, ExtractionStatus.NO_RESULTS)
+
+    def test_zero_score_articles_are_preserved(self) -> None:
+        session = FakeSession([FakeResponse(BASIC_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=0)
+
+        result = scrape_scholar("quantum", 1, client=client)
+
+        self.assertEqual(result.status, ExtractionStatus.SUCCESS)
+        self.assertEqual(len(result.articles), 1)
+        self.assertEqual(result.articles[0].relevance_score, 0.0)
 
     def test_network_timeout_is_network_error_after_bounded_retry(self) -> None:
         session = FakeSession([requests.Timeout("first"), requests.Timeout("second")])
