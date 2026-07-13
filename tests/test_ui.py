@@ -35,10 +35,17 @@ class DummyVar:
 class DummyWidget:
     def __init__(self) -> None:
         self.state = None
+        self.visible = True
 
     def configure(self, **kwargs) -> None:
         if "state" in kwargs:
             self.state = kwargs["state"]
+
+    def grid(self, **_kwargs) -> None:
+        self.visible = True
+
+    def grid_remove(self) -> None:
+        self.visible = False
 
 
 class DummyTable:
@@ -89,7 +96,7 @@ class UiHelperTests(unittest.TestCase):
         ranked = Article(title="Title", authors="Authors", link="https://example.edu", relevance_score=91.24)
         unranked = Article(title="No Link", authors="", link="")
 
-        self.assertEqual(article_row(ranked), ("Title", "Authors", "91.2", "https://example.edu"))
+        self.assertEqual(article_row(ranked), ("Title", "Authors", "91.2", "Open link"))
         self.assertEqual(article_row(unranked), ("No Link", "", "", "No link"))
 
     def test_export_path_preserves_default_filename(self) -> None:
@@ -111,7 +118,7 @@ class UiHelperTests(unittest.TestCase):
             invalid_articles_removed=1,
         )
 
-        self.assertEqual(result_summary(result), "1 results | 2 of 3 pages completed | 1 duplicate removed | 1 invalid record removed")
+        self.assertEqual(result_summary(result), "1 result found | 2/3 pages completed | 1 duplicate removed | 1 invalid record removed")
 
 
 class WorkerTests(unittest.TestCase):
@@ -169,8 +176,16 @@ class MainWindowStateTests(unittest.TestCase):
         window.ranking_var = DummyVar(True)
         window.output_folder_var = DummyVar("")
         window.status_var = DummyVar("")
+        window.status_heading_var = DummyVar("")
         window.summary_var = DummyVar("")
+        window.empty_title_var = DummyVar("")
+        window.empty_detail_var = DummyVar("")
         window.progress_var = DummyVar(0)
+        window.status_frame = DummyWidget()
+        window.status_heading_label = DummyWidget()
+        window.status_detail_label = DummyWidget()
+        window.empty_frame = DummyWidget()
+        window.table_container = DummyWidget()
         window.button_search = DummyWidget()
         window.button_cancel = DummyWidget()
         window.button_export_excel = DummyWidget()
@@ -221,7 +236,8 @@ class MainWindowStateTests(unittest.TestCase):
 
         self.assertTrue(window.cancel_event.is_set())
         self.assertEqual(window.button_cancel.state, tkinter_app.tk.DISABLED)
-        self.assertEqual(window.status_var.get(), "Cancelling...")
+        self.assertEqual(window.status_heading_var.get(), "Cancelling search")
+        self.assertEqual(window.status_var.get(), "Finishing the current safe stop point...")
 
     def test_handle_progress_updates_status_and_progress(self) -> None:
         window = self.make_window()
@@ -229,6 +245,7 @@ class MainWindowStateTests(unittest.TestCase):
         window._handle_progress({"current_page": 1, "total_pages": 4, "phase": "requesting"})
 
         self.assertEqual(window.progress_var.get(), 25)
+        self.assertEqual(window.status_heading_var.get(), "Searching Google Scholar")
         self.assertEqual(window.status_var.get(), "Requesting page 1 of 4...")
 
     def test_handle_success_result_renders_articles_and_enables_export(self) -> None:
@@ -244,7 +261,8 @@ class MainWindowStateTests(unittest.TestCase):
         window._handle_result(result)
 
         self.assertEqual(window.current_articles, result.articles)
-        self.assertEqual(window.results_table.rows, [("A", "Author", "80.0", "https://example.edu")])
+        self.assertEqual(window.results_table.rows, [("A", "Author", "80.0", "Open link")])
+        self.assertEqual(window.status_heading_var.get(), "Search complete")
         self.assertEqual(window.status_var.get(), "Done")
         self.assertEqual(window.button_export_excel.state, tkinter_app.tk.NORMAL)
         self.assertEqual(window.button_export_csv.state, tkinter_app.tk.NORMAL)
