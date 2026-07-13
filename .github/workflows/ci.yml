@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install project from metadata
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+
+      - name: Compile source and tests
+        run: python -m compileall prog.py src tests
+
+      - name: Import safety check
+        shell: python
+        run: |
+          import google_scholar_scraper
+          from google_scholar_scraper.app import main
+          from google_scholar_scraper.ui.tkinter_app import MainWindow
+          assert google_scholar_scraper.__version__ == "2.0.0"
+          assert callable(main)
+          assert MainWindow.__name__ == "MainWindow"
+
+      - name: Run deterministic tests
+        run: python -m unittest discover -s tests

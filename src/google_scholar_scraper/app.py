@@ -25,7 +25,7 @@ def run_packaging_smoke(output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     articles = [
         Article(
-            title='یادگیری عمیق, "پزشکی"',
+            title="Unicode Smoke: cafe, alpha + beta, 医学 AI",
             authors="Packaging Smoke",
             link="https://example.edu/smoke",
             relevance_score=88.8,

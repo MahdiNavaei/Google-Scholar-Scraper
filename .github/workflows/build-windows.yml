@@ -1,0 +1,163 @@
+name: Build Windows Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    env:
+      VERSION: "2.0.0"
+      APP_DIR: Google-Scholar-Scraper-v2.0.0
+      PORTABLE_NAME: Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip
+      INSTALLER_NAME: Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install runtime and build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install . pyinstaller
+
+      - name: Compile source and tests
+        run: python -m compileall prog.py src tests
+
+      - name: Run deterministic tests
+        run: python -m unittest discover -s tests
+
+      - name: Remove generated build outputs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          foreach ($path in @("build", "dist")) {
+            if (Test-Path -LiteralPath $path) {
+              Remove-Item -LiteralPath $path -Recurse -Force
+            }
+          }
+
+      - name: Build PyInstaller onedir application
+        run: python -m PyInstaller packaging\pyinstaller\GoogleScholarScraper.spec --noconfirm --clean
+
+      - name: Verify packaged executable
+        shell: pwsh
+        run: |
+          $exe = "dist\$env:APP_DIR\GoogleScholarScraper.exe"
+          if (-not (Test-Path -LiteralPath $exe)) {
+            throw "Expected packaged executable missing: $exe"
+          }
+
+      - name: Build Portable ZIP
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Path dist\release -Force | Out-Null
+          Compress-Archive -Path "dist\$env:APP_DIR" -DestinationPath "dist\release\$env:PORTABLE_NAME" -Force
+          $zip = Get-Item -LiteralPath "dist\release\$env:PORTABLE_NAME"
+          if ($zip.Length -le 0) {
+            throw "Portable ZIP is empty."
+          }
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          choco install innosetup --no-progress -y
+          $candidates = @(
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+            "C:\Program Files\Inno Setup 6\ISCC.exe"
+          )
+          $iscc = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $iscc) {
+            $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+            if ($command) {
+              $iscc = $command.Source
+            }
+          }
+          if (-not $iscc) {
+            throw "Inno Setup compiler was not found."
+          }
+          "ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build Windows Installer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          & "$env:ISCC" installer\GoogleScholarScraper.iss
+          $installer = "dist\installer\$env:INSTALLER_NAME"
+          if (-not (Test-Path -LiteralPath $installer)) {
+            throw "Expected installer missing: $installer"
+          }
+          if ((Get-Item -LiteralPath $installer).Length -le 0) {
+            throw "Installer is empty."
+          }
+
+      - name: Packaged export smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $smokeDir = Join-Path (Resolve-Path "dist") "smoke"
+          Remove-Item -LiteralPath $smokeDir -Recurse -Force -ErrorAction SilentlyContinue
+          $exe = "dist\$env:APP_DIR\GoogleScholarScraper.exe"
+          $process = Start-Process -FilePath $exe -ArgumentList @("--packaging-smoke", $smokeDir) -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Packaged smoke exited with $($process.ExitCode)."
+          }
+          foreach ($name in @("packaging-smoke.xlsx", "packaging-smoke.csv")) {
+            $path = Join-Path $smokeDir $name
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing smoke export: $path"
+            }
+            if ((Get-Item -LiteralPath $path).Length -le 0) {
+              throw "Smoke export is empty: $path"
+            }
+          }
+
+      - name: Generate SHA-256 checksums
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = @(
+            "dist\release\$env:PORTABLE_NAME",
+            "dist\installer\$env:INSTALLER_NAME"
+          )
+          $lines = foreach ($file in $files) {
+            $hash = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            $name = Split-Path -Leaf $file
+            "$hash  $name"
+          }
+          $lines | Set-Content -LiteralPath dist\release\SHA256SUMS.txt -Encoding ASCII
+
+      - name: Verify final artifact names
+        shell: pwsh
+        run: |
+          $expected = @(
+            "dist\release\$env:PORTABLE_NAME",
+            "dist\installer\$env:INSTALLER_NAME",
+            "dist\release\SHA256SUMS.txt"
+          )
+          foreach ($path in $expected) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing expected artifact: $path"
+            }
+            if ((Get-Item -LiteralPath $path).Length -le 0) {
+              throw "Expected artifact is empty: $path"
+            }
+          }
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-scholar-scraper-v2.0.0-windows-artifacts
+          path: |
+            dist/release/Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip
+            dist/installer/Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe
+            dist/release/SHA256SUMS.txt
+          if-no-files-found: error

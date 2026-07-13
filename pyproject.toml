@@ -8,6 +8,7 @@ version = "2.0.0"
 description = "A lightweight desktop Google Scholar scraping tool."
 readme = "README.md"
 requires-python = ">=3.9"
+license = { file = "LICENSE" }
 dependencies = [
     "beautifulsoup4",
     "openpyxl",

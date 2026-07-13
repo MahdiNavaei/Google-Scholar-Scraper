@@ -20,12 +20,19 @@ class PackagingMetadataTests(unittest.TestCase):
 
     def test_packaging_smoke_writes_excel_and_csv_without_starting_gui(self) -> None:
         import tempfile
+        import csv
 
         with tempfile.TemporaryDirectory() as temp_dir:
             run_packaging_smoke(Path(temp_dir))
 
             self.assertTrue((Path(temp_dir) / "packaging-smoke.xlsx").exists())
-            self.assertTrue((Path(temp_dir) / "packaging-smoke.csv").exists())
+            csv_path = Path(temp_dir) / "packaging-smoke.csv"
+            self.assertTrue(csv_path.exists())
+            with csv_path.open(newline="", encoding="utf-8-sig") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(rows[0]["Title"], "Unicode Smoke: cafe, alpha + beta, 医学 AI")
+            self.assertEqual(rows[0]["Relevance Score"], "88.8")
+            self.assertEqual(rows[1]["Relevance Score"], "")
 
     def test_pyinstaller_spec_uses_windowed_onedir_identity(self) -> None:
         spec = (PROJECT_ROOT / "packaging" / "pyinstaller" / "GoogleScholarScraper.spec").read_text(encoding="utf-8")
@@ -53,6 +60,24 @@ class PackagingMetadataTests(unittest.TestCase):
         self.assertIn('#define MyAppPublisher "Mahdi Navaei"', iss)
         self.assertIn("PrivilegesRequired=lowest", iss)
         self.assertIn("Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64", iss)
+
+    def test_release_licensing_and_notice_files_are_present(self) -> None:
+        license_text = (PROJECT_ROOT / "LICENSE").read_text(encoding="utf-8")
+        notice = (PROJECT_ROOT / "NOTICE").read_text(encoding="utf-8")
+        commercial = (PROJECT_ROOT / "COMMERCIAL_LICENSE.md").read_text(encoding="utf-8")
+
+        self.assertIn("PolyForm Noncommercial License 1.0.0", license_text)
+        self.assertIn("Mahdi Navaei", notice)
+        self.assertIn("Commercial use requires a separate written commercial license", commercial)
+
+    def test_windows_workflow_builds_installer_and_uploads_artifacts_without_release_publish(self) -> None:
+        workflow = (PROJECT_ROOT / ".github" / "workflows" / "build-windows.yml").read_text(encoding="utf-8")
+
+        self.assertIn("workflow_dispatch", workflow)
+        self.assertIn("choco install innosetup", workflow)
+        self.assertIn("Build Windows Installer", workflow)
+        self.assertIn("actions/upload-artifact@v4", workflow)
+        self.assertNotIn("softprops/action-gh-release", workflow)
 
 
 if __name__ == "__main__":
