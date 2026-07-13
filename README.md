@@ -56,3 +56,5 @@ Run the program using Python: python -m google_scholar_scraper.
 
 The legacy launcher is also available: python prog.py.
 
+Note: Google Scholar may rate-limit or block automated requests. The application reports these states instead of treating them as a successful empty extraction.
+

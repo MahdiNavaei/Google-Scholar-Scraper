@@ -353,6 +353,7 @@ Recommended result states:
 - `SUCCESS`: requested extraction completed and at least one article was collected.
 - `PARTIAL_SUCCESS`: some articles were collected but one or more pages failed.
 - `NO_RESULTS`: request completed but no result entries were present.
+- `RATE_LIMITED`: Google Scholar returned HTTP 429 or a clear too-many-requests response.
 - `BLOCKED`: response appears blocked or CAPTCHA-like.
 - `NETWORK_ERROR`: request failed before reliable parsing.
 - `PARSING_ERROR`: response was received but could not be parsed according to expected rules.

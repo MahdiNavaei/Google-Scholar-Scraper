@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import filedialog
 
 from google_scholar_scraper.exporters import save_to_excel
-from google_scholar_scraper.scraper.client import scrape_scholar_articles
+from google_scholar_scraper.models import ExtractionStatus
+from google_scholar_scraper.scraper.client import scrape_scholar
 
 
 class MainWindow:
@@ -44,7 +45,7 @@ class MainWindow:
         query = self.entry_query.get()
         num_pages = int(self.entry_pages.get())
 
-        articles = scrape_scholar_articles(query, num_pages)
+        result = scrape_scholar(query, num_pages)
 
         folder_path = self.entry_folder.get()
         if folder_path:
@@ -52,8 +53,12 @@ class MainWindow:
         else:
             filename = "scholar_articles.xlsx"
 
-        save_to_excel(articles, filename)
-        self.label_status.config(text="Extraction complete. Data saved to scholar_articles.xlsx.")
+        if result.status in {ExtractionStatus.SUCCESS, ExtractionStatus.PARTIAL_SUCCESS} and result.articles:
+            save_to_excel(result.articles, filename)
+            self.label_status.config(text=f"{result.message} Data saved to scholar_articles.xlsx.")
+            return
+
+        self.label_status.config(text=result.message)
 
     def run(self) -> None:
         self.window.mainloop()
