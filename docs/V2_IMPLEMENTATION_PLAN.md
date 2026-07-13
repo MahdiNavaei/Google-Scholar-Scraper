@@ -519,6 +519,7 @@ Recommended behavior:
 - Include relevance score when enabled.
 - Export partial results when extraction is partial and user chooses to proceed.
 - Milestone 6 uses explicit user-triggered Excel export after result review instead of immediate auto-export.
+- Milestone 7 uses explicit CSV and Excel export actions. CSV is written with the standard library `csv` module using UTF-8 with BOM (`utf-8-sig`) for practical Windows Excel compatibility while preserving Unicode text. Excel export uses `openpyxl` directly, removing pandas from the runtime dependency chain.
 
 CSV should be the simplest default. Excel remains important for continuity with the current README and user expectations.
 
@@ -547,6 +548,8 @@ Release artifacts:
 - Release notes documenting supported OS, known limitations, and no CAPTCHA bypass.
 
 Do not build artifacts in Milestone 1.
+
+Milestone 7 packaging decision: the Windows build uses PyInstaller `onedir` through `packaging/pyinstaller/GoogleScholarScraper.spec`, targeting the package `__main__.py` entrypoint with `console=False`. Portable artifacts are produced as `Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip`. The installer definition is maintained in `installer/GoogleScholarScraper.iss` for Inno Setup and installs per user with `PrivilegesRequired=lowest`.
 
 ## 18. Testing Strategy
 
@@ -580,7 +583,7 @@ Current imports:
 
 - `requests`
 - `beautifulsoup4`
-- `pandas`
+- `openpyxl`
 - `tkinter` from the standard library
 
 Recommended V2 dependencies:
@@ -599,19 +602,12 @@ Recommended V2 dependencies:
   - Packaging impact: low.
   - Necessity: yes.
 
-- `pandas`
-  - Purpose: current Excel export.
-  - Type: runtime if retained.
-  - Standard library insufficiency: no native `.xlsx` writing.
-  - Packaging impact: medium to high.
-  - Necessity: questionable. It may be replaced with `openpyxl` for narrower Excel export.
-
 - `openpyxl`
-  - Purpose: direct Excel export without full pandas.
-  - Type: runtime if chosen.
+  - Purpose: direct Excel export.
+  - Type: runtime.
   - Standard library insufficiency: no native `.xlsx` writing.
-  - Packaging impact: medium, likely lower than pandas.
-  - Necessity: recommended replacement candidate for pandas.
+  - Packaging impact: medium, lower than retaining pandas for this small export use case.
+  - Necessity: yes for Excel export in Milestone 7.
 
 - `scikit-learn`
   - Purpose: TF-IDF and cosine similarity.

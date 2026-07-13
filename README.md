@@ -12,7 +12,7 @@ The Google Scholar Scraper is a Python program that allows users to extract arti
 
 4- Data extraction: The program extracts the article's title, authors, and link for each entry, ensuring comprehensive data retrieval.
 
-5- Excel output: The extracted data is saved into an Excel file, making it easily accessible and compatible with other applications.
+5- Excel and CSV output: The extracted data can be exported after review as either an Excel workbook or a UTF-8 CSV file.
 
 6- Optional output folder: Users can specify the output folder where the Excel file will be saved. If not provided, the file will be saved in the program's directory.
 
@@ -30,7 +30,7 @@ The Google Scholar Scraper is a Python program that allows users to extract arti
 
 6- Wait for the non-blocking search to complete while progress is shown.
 
-7- Review the results table, then click "Export Excel" to save the data.
+7- Review the results table, then click "Export Excel" or "Export CSV" to save the data.
 
 ## Dependencies:
 
@@ -40,7 +40,7 @@ Requests library
 
 BeautifulSoup library
 
-Pandas library
+OpenPyXL library for Excel writing
 
 Tkinter library (standard with Python)
 
@@ -48,7 +48,7 @@ Tkinter library (standard with Python)
 
 Clone the repository from GitHub.
 
-Install the required dependencies using pip: pip install requests beautifulsoup4 pandas.
+Install the required dependencies using pip: pip install requests beautifulsoup4 openpyxl.
 
 Install the project in editable mode: pip install -e .
 
@@ -60,5 +60,5 @@ Note: Google Scholar may rate-limit or block automated requests. The application
 
 V2 includes local lexical relevance ranking. It does not use LLMs, model downloads, or external AI APIs.
 
-The desktop UI supports Smart Relevance Ranking, cooperative cancellation, result review, and explicit Excel export.
+The desktop UI supports Smart Relevance Ranking, cooperative cancellation, result review, and explicit Excel/CSV export.
 

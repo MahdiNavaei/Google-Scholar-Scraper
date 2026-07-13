@@ -4,14 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "google-scholar-scraper"
-version = "0.2.0"
+version = "2.0.0"
 description = "A lightweight desktop Google Scholar scraping tool."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "beautifulsoup4",
-    "pandas",
+    "openpyxl",
     "requests",
+]
+
+[project.optional-dependencies]
+build = [
+    "pyinstaller",
+]
+test = [
+    "pytest",
 ]
 
 [tool.setuptools.packages.find]

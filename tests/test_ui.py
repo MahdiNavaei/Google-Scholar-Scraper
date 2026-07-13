@@ -173,7 +173,8 @@ class MainWindowStateTests(unittest.TestCase):
         window.progress_var = DummyVar(0)
         window.button_search = DummyWidget()
         window.button_cancel = DummyWidget()
-        window.button_export = DummyWidget()
+        window.button_export_excel = DummyWidget()
+        window.button_export_csv = DummyWidget()
         window.entry_query = DummyWidget()
         window.entry_pages = DummyWidget()
         window.entry_folder = DummyWidget()
@@ -189,16 +190,19 @@ class MainWindowStateTests(unittest.TestCase):
 
         self.assertEqual(window.button_search.state, tkinter_app.tk.DISABLED)
         self.assertEqual(window.button_cancel.state, tkinter_app.tk.NORMAL)
-        self.assertEqual(window.button_export.state, tkinter_app.tk.DISABLED)
+        self.assertEqual(window.button_export_excel.state, tkinter_app.tk.DISABLED)
+        self.assertEqual(window.button_export_csv.state, tkinter_app.tk.DISABLED)
 
     def test_idle_state_enables_export_only_with_results(self) -> None:
         window = self.make_window()
         window._set_idle_state()
-        self.assertEqual(window.button_export.state, tkinter_app.tk.DISABLED)
+        self.assertEqual(window.button_export_excel.state, tkinter_app.tk.DISABLED)
+        self.assertEqual(window.button_export_csv.state, tkinter_app.tk.DISABLED)
 
         window.current_articles = [Article("A")]
         window._set_idle_state()
-        self.assertEqual(window.button_export.state, tkinter_app.tk.NORMAL)
+        self.assertEqual(window.button_export_excel.state, tkinter_app.tk.NORMAL)
+        self.assertEqual(window.button_export_csv.state, tkinter_app.tk.NORMAL)
 
     def test_search_does_not_start_second_worker(self) -> None:
         window = self.make_window()
@@ -242,7 +246,8 @@ class MainWindowStateTests(unittest.TestCase):
         self.assertEqual(window.current_articles, result.articles)
         self.assertEqual(window.results_table.rows, [("A", "Author", "80.0", "https://example.edu")])
         self.assertEqual(window.status_var.get(), "Done")
-        self.assertEqual(window.button_export.state, tkinter_app.tk.NORMAL)
+        self.assertEqual(window.button_export_excel.state, tkinter_app.tk.NORMAL)
+        self.assertEqual(window.button_export_csv.state, tkinter_app.tk.NORMAL)
 
     def test_partial_and_cancelled_results_are_rendered(self) -> None:
         window = self.make_window()
@@ -256,7 +261,8 @@ class MainWindowStateTests(unittest.TestCase):
             )
             window._handle_result(result)
             self.assertEqual(window.current_articles, result.articles)
-            self.assertEqual(window.button_export.state, tkinter_app.tk.NORMAL)
+            self.assertEqual(window.button_export_excel.state, tkinter_app.tk.NORMAL)
+            self.assertEqual(window.button_export_csv.state, tkinter_app.tk.NORMAL)
 
     def test_export_uses_final_displayed_articles(self) -> None:
         window = self.make_window()
@@ -266,9 +272,21 @@ class MainWindowStateTests(unittest.TestCase):
             expected_path = Path(temp_dir) / "scholar_articles.xlsx"
 
             with patch("google_scholar_scraper.ui.tkinter_app.save_to_excel") as save_to_excel:
-                window.export_results()
+                window.export_excel_results()
 
         save_to_excel.assert_called_once_with([Article("A")], expected_path)
+
+    def test_csv_export_uses_final_displayed_articles(self) -> None:
+        window = self.make_window()
+        window.current_articles = [Article("A")]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            window.current_request = SearchRequest("query", 1, True, temp_dir)
+            expected_path = Path(temp_dir) / "scholar_articles.csv"
+
+            with patch("google_scholar_scraper.ui.tkinter_app.save_to_csv") as save_to_csv:
+                window.export_csv_results()
+
+        save_to_csv.assert_called_once_with([Article("A")], expected_path)
 
 
 if __name__ == "__main__":

@@ -8,12 +8,14 @@ import webbrowser
 import tkinter as tk
 from tkinter import filedialog, ttk
 
-from google_scholar_scraper.exporters import save_to_excel
+from google_scholar_scraper import __version__
+from google_scholar_scraper.exporters import save_to_csv, save_to_excel
 from google_scholar_scraper.models import Article, ExtractionResult, ExtractionStatus
 from google_scholar_scraper.scraper.client import scrape_scholar
 
 
 DEFAULT_EXCEL_FILENAME = "scholar_articles.xlsx"
+DEFAULT_CSV_FILENAME = "scholar_articles.csv"
 
 
 @dataclass(frozen=True)
@@ -51,10 +53,10 @@ def validate_search_inputs(query: str, pages: str, ranking_enabled: bool, output
     )
 
 
-def export_path(output_folder: str) -> Path:
+def export_path(output_folder: str, filename: str = DEFAULT_EXCEL_FILENAME) -> Path:
     if output_folder:
-        return Path(output_folder) / DEFAULT_EXCEL_FILENAME
-    return Path(DEFAULT_EXCEL_FILENAME)
+        return Path(output_folder) / filename
+    return Path(filename)
 
 
 def status_message(result: ExtractionResult) -> str:
@@ -144,7 +146,7 @@ class SearchWorker(threading.Thread):
 class MainWindow:
     def __init__(self) -> None:
         self.window = tk.Tk()
-        self.window.title("Google Scholar Scraper")
+        self.window.title(f"Google Scholar Scraper v{__version__}")
         self.window.geometry("1000x680")
         self.window.minsize(820, 520)
 
@@ -204,8 +206,10 @@ class MainWindow:
         self.button_search.grid(row=0, column=0, padx=(0, 8))
         self.button_cancel = ttk.Button(action_frame, text="Cancel", command=self.cancel_search)
         self.button_cancel.grid(row=0, column=1, padx=8)
-        self.button_export = ttk.Button(action_frame, text="Export Excel", command=self.export_results)
-        self.button_export.grid(row=0, column=2, padx=8)
+        self.button_export_excel = ttk.Button(action_frame, text="Export Excel", command=self.export_excel_results)
+        self.button_export_excel.grid(row=0, column=2, padx=8)
+        self.button_export_csv = ttk.Button(action_frame, text="Export CSV", command=self.export_csv_results)
+        self.button_export_csv.grid(row=0, column=3, padx=8)
 
         progress_frame = ttk.Frame(self.window)
         progress_frame.grid(row=2, column=0, sticky="ew", padx=12, pady=8)
@@ -293,7 +297,7 @@ class MainWindow:
         if self._is_running():
             self.window.after(100, self.poll_worker_queue)
 
-    def export_results(self) -> None:
+    def export_excel_results(self) -> None:
         if not self.current_articles:
             self.status_var.set("No results to export.")
             return
@@ -301,6 +305,16 @@ class MainWindow:
         folder = self.current_request.output_folder if self.current_request else self.output_folder_var.get().strip()
         path = export_path(folder)
         save_to_excel(self.current_articles, path)
+        self.status_var.set(f"Exported {len(self.current_articles)} results to {path}.")
+
+    def export_csv_results(self) -> None:
+        if not self.current_articles:
+            self.status_var.set("No results to export.")
+            return
+
+        folder = self.current_request.output_folder if self.current_request else self.output_folder_var.get().strip()
+        path = export_path(folder, DEFAULT_CSV_FILENAME)
+        save_to_csv(self.current_articles, path)
         self.status_var.set(f"Exported {len(self.current_articles)} results to {path}.")
 
     def open_selected_link(self, _event=None) -> None:
@@ -356,7 +370,8 @@ class MainWindow:
     def _set_running_state(self) -> None:
         self.button_search.configure(state=tk.DISABLED)
         self.button_cancel.configure(state=tk.NORMAL)
-        self.button_export.configure(state=tk.DISABLED)
+        self.button_export_excel.configure(state=tk.DISABLED)
+        self.button_export_csv.configure(state=tk.DISABLED)
         self.entry_query.configure(state=tk.DISABLED)
         self.entry_pages.configure(state=tk.DISABLED)
         self.entry_folder.configure(state=tk.DISABLED)
@@ -366,7 +381,9 @@ class MainWindow:
     def _set_idle_state(self) -> None:
         self.button_search.configure(state=tk.NORMAL)
         self.button_cancel.configure(state=tk.DISABLED)
-        self.button_export.configure(state=tk.NORMAL if self.current_articles else tk.DISABLED)
+        export_state = tk.NORMAL if self.current_articles else tk.DISABLED
+        self.button_export_excel.configure(state=export_state)
+        self.button_export_csv.configure(state=export_state)
         self.entry_query.configure(state=tk.NORMAL)
         self.entry_pages.configure(state=tk.NORMAL)
         self.entry_folder.configure(state=tk.NORMAL)
