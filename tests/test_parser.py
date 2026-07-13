@@ -64,6 +64,17 @@ class ParserTests(unittest.TestCase):
 
         self.assertEqual(result.status, ExtractionStatus.PARSING_ERROR)
 
+    def test_google_internal_server_error_page_is_network_error(self) -> None:
+        html = """
+        <html><head><title>Google Scholar</title></head>
+        <body>The system can't perform the operation now. Try again later.
+        Server Error We're sorry but it appears that there has been an internal server error.</body></html>
+        """
+
+        result = parse_scholar_page(html)
+
+        self.assertEqual(result.status, ExtractionStatus.NETWORK_ERROR)
+
 
 if __name__ == "__main__":
     unittest.main()

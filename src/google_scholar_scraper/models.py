@@ -26,6 +26,7 @@ class ExtractionStatus(str, Enum):
     BLOCKED = "BLOCKED"
     NETWORK_ERROR = "NETWORK_ERROR"
     PARSING_ERROR = "PARSING_ERROR"
+    CANCELLED = "CANCELLED"
 
 
 @dataclass(frozen=True)

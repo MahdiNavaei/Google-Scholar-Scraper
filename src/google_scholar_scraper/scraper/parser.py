@@ -77,6 +77,9 @@ def classify_scholar_page(html: str, status_code: int = 200) -> ExtractionStatus
     if status_code < 200 or status_code >= 300:
         return ExtractionStatus.NETWORK_ERROR
 
+    if _has_network_error_signal(text):
+        return ExtractionStatus.NETWORK_ERROR
+
     soup = BeautifulSoup(html, "html.parser")
     results = soup.find_all("div", class_="gs_ri")
     if results:
@@ -112,6 +115,15 @@ def _has_blocked_signal(text: str) -> bool:
     return any(signal in text for signal in signals)
 
 
+def _has_network_error_signal(text: str) -> bool:
+    signals = (
+        "internal server error",
+        "the system can't perform the operation now",
+        "try again later",
+    )
+    return any(signal in text for signal in signals)
+
+
 def _has_no_results_signal(text: str) -> bool:
     signals = (
         "did not match any articles",
@@ -129,5 +141,6 @@ def _message_for_status(status: ExtractionStatus) -> str:
         ExtractionStatus.BLOCKED: "Google Scholar returned a block, consent, or challenge page.",
         ExtractionStatus.NETWORK_ERROR: "Google Scholar returned an unsuccessful HTTP response.",
         ExtractionStatus.PARSING_ERROR: "Google Scholar returned a page that could not be parsed as results.",
+        ExtractionStatus.CANCELLED: "Extraction was cancelled.",
     }
     return messages.get(status, "Google Scholar page was classified.")

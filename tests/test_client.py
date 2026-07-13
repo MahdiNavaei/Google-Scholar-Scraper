@@ -1,4 +1,5 @@
 import unittest
+from threading import Event
 from unittest.mock import patch
 
 import requests
@@ -66,6 +67,21 @@ class FakeSession:
         if isinstance(response, Exception):
             raise response
         return response
+
+
+class CancellingWait:
+    def __init__(self, initially_set: bool = False) -> None:
+        self._set = initially_set
+
+    def is_set(self) -> bool:
+        return self._set
+
+    def set(self) -> None:
+        self._set = True
+
+    def wait(self, _timeout: float) -> bool:
+        self._set = True
+        return True
 
 
 class ClientTests(unittest.TestCase):
@@ -235,6 +251,51 @@ class ClientTests(unittest.TestCase):
             scrape_scholar("query", 2, client=client)
 
         sleep.assert_called_once_with(1.5)
+
+    def test_progress_callback_reports_page_phases(self) -> None:
+        session = FakeSession([FakeResponse(BASIC_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=0)
+        events = []
+
+        result = scrape_scholar("query", 1, client=client, progress_callback=lambda *event: events.append(event))
+
+        self.assertEqual(result.status, ExtractionStatus.SUCCESS)
+        self.assertEqual(events, [(1, 1, "requesting"), (1, 1, "parsing"), (1, 1, "completed")])
+
+    def test_cancellation_before_first_page_returns_cancelled(self) -> None:
+        session = FakeSession([FakeResponse(BASIC_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=0)
+        cancel_event = Event()
+        cancel_event.set()
+
+        result = scrape_scholar("query", 1, client=client, cancel_event=cancel_event)
+
+        self.assertEqual(result.status, ExtractionStatus.CANCELLED)
+        self.assertEqual(result.articles, [])
+        self.assertEqual(len(session.calls), 0)
+
+    def test_cancellation_during_pacing_wait_preserves_results(self) -> None:
+        session = FakeSession([FakeResponse(BASIC_HTML), FakeResponse(BASIC_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=1.5, backoff_seconds=0)
+        cancel_event = CancellingWait()
+
+        result = scrape_scholar("query", 2, client=client, cancel_event=cancel_event)
+
+        self.assertEqual(result.status, ExtractionStatus.CANCELLED)
+        self.assertEqual(result.successful_pages, 1)
+        self.assertEqual(len(result.articles), 1)
+        self.assertEqual(len(session.calls), 1)
+
+    def test_cancellation_during_backoff_returns_cancelled(self) -> None:
+        session = FakeSession([requests.Timeout("temporary"), FakeResponse(BASIC_HTML)])
+        client = ScholarClient(session=session, page_delay_seconds=0, backoff_seconds=1.5, max_retries=1)
+        cancel_event = CancellingWait()
+
+        result = scrape_scholar("query", 1, client=client, cancel_event=cancel_event)
+
+        self.assertEqual(result.status, ExtractionStatus.CANCELLED)
+        self.assertEqual(result.articles, [])
+        self.assertEqual(len(session.calls), 1)
 
 
 if __name__ == "__main__":

@@ -28,9 +28,9 @@ The Google Scholar Scraper is a Python program that allows users to extract arti
 
 5- Click the "Extract Data" button to initiate the scraping process.
 
-6- Wait for the program to complete the extraction and save the data to an Excel file.
+6- Wait for the non-blocking search to complete while progress is shown.
 
-7- The status label will display a message indicating the completion of the extraction process.
+7- Review the results table, then click "Export Excel" to save the data.
 
 ## Dependencies:
 
@@ -59,4 +59,6 @@ The legacy launcher is also available: python prog.py.
 Note: Google Scholar may rate-limit or block automated requests. The application reports these states instead of treating them as a successful empty extraction.
 
 V2 includes local lexical relevance ranking. It does not use LLMs, model downloads, or external AI APIs.
+
+The desktop UI supports Smart Relevance Ranking, cooperative cancellation, result review, and explicit Excel export.
 

@@ -518,6 +518,7 @@ Recommended behavior:
 - Preserve table column order.
 - Include relevance score when enabled.
 - Export partial results when extraction is partial and user chooses to proceed.
+- Milestone 6 uses explicit user-triggered Excel export after result review instead of immediate auto-export.
 
 CSV should be the simplest default. Excel remains important for continuity with the current README and user expectations.
 
@@ -844,6 +845,7 @@ Expected changes:
 - Cancellation.
 - Results table.
 - User-facing error messages.
+- Explicit Excel export after result review.
 
 Non-goals:
 
