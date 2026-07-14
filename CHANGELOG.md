@@ -13,6 +13,7 @@
 
 - Added exact V2.0.1 release-build dependency constraints.
 - Updated constrained HTTP dependencies to `requests 2.33.0`, `urllib3 2.7.0`, and `idna 3.15` following the final dependency security review.
+- Raised the declared Requests runtime floor to `requests>=2.33,<3`.
 - Added deterministic collection of exact third-party legal files from the constrained release-build environment.
 - Included `LICENSE`, `NOTICE`, `COMMERCIAL_LICENSE.md`, `THIRD_PARTY_NOTICES.txt`, and a populated `third_party_licenses/` bundle in portable and installer layouts.
 - Removed duplicate project notice files from the PyInstaller `_internal` directory.
