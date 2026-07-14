@@ -20,5 +20,9 @@ plus per-component legal files. These generated files are release artifacts and
 are not committed manually, which avoids stale license text drifting away from
 the exact dependency versions used to build the release.
 
+The Windows build fails if any required component lacks an identifiable legal
+file, if an installed dependency version differs from the release constraints,
+or if the Python or Tcl/Tk runtime license cannot be collected.
+
 Application code licensing remains documented in `LICENSE`, `NOTICE`, and
 `COMMERCIAL_LICENSE.md`.
