@@ -23,6 +23,7 @@ UI design.
 - Updated the constrained HTTP dependency set to `requests 2.33.0`,
   `urllib3 2.7.0`, and `idna 3.15` following the final dependency security
   review.
+- Raised the declared Requests runtime floor to `requests>=2.33,<3`.
 - Included `LICENSE`, `NOTICE`, `COMMERCIAL_LICENSE.md`, and
   `THIRD_PARTY_NOTICES.txt` at the distribution root.
 - Added deterministic third-party legal-file collection from the exact installed
