@@ -24,5 +24,6 @@ The Windows build fails if any required component lacks an identifiable legal
 file, if an installed dependency version differs from the release constraints,
 or if the Python or Tcl/Tk runtime license cannot be collected.
 
-Application code licensing remains documented in `LICENSE`, `NOTICE`, and
-`COMMERCIAL_LICENSE.md`.
+The component summary and expected versions are documented in
+`THIRD_PARTY_NOTICES.txt`. Application code licensing remains documented in
+`LICENSE`, `NOTICE`, and `COMMERCIAL_LICENSE.md`.
