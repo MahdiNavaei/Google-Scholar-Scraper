@@ -9,8 +9,8 @@ and exporting reviewed results to Excel or CSV. It is source-available for
 noncommercial use under the PolyForm Noncommercial License 1.0.0, with separate
 commercial licensing available.
 
-![Version](https://img.shields.io/badge/source-2.0.1--rc-blue)
-![Latest Release](https://img.shields.io/badge/latest%20release-2.0.0-green)
+![Version](https://img.shields.io/badge/version-2.0.1-blue)
+![Latest Release](https://img.shields.io/badge/latest%20release-2.0.1-green)
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)
 [![CI](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/ci.yml)
 [![Windows Build](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/build-windows.yml/badge.svg)](https://github.com/MahdiNavaei/Google-Scholar-Scraper/actions/workflows/build-windows.yml)
@@ -100,32 +100,28 @@ empty result:
 
 The UI remains responsive while extraction runs.
 
-## Download V2.0.0
+## Download V2.0.1
 
-- [Windows Installer](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/download/v2.0.0/Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe)
-- [Portable Windows ZIP](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/download/v2.0.0/Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip)
-- [SHA-256 checksums](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/download/v2.0.0/SHA256SUMS.txt)
-- [Full release notes](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/tag/v2.0.0)
+- [Windows Installer](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/download/v2.0.1/Google-Scholar-Scraper-v2.0.1-Setup-Windows-x64.exe)
+- [Portable Windows ZIP](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/download/v2.0.1/Google-Scholar-Scraper-v2.0.1-Portable-Windows-x64.zip)
+- [SHA-256 checksums](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/download/v2.0.1/SHA256SUMS.txt)
+- [Full release notes](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/tag/v2.0.1)
 
 ## Installation Options
 
-V2.0.0 is available as a Windows Installer and a Portable Windows ZIP.
+V2.0.1 is available as a Windows Installer and a Portable Windows ZIP.
 Checksums are published with the release:
 
-- `Google-Scholar-Scraper-v2.0.0-Portable-Windows-x64.zip`
-- `Google-Scholar-Scraper-v2.0.0-Setup-Windows-x64.exe`
+- `Google-Scholar-Scraper-v2.0.1-Portable-Windows-x64.zip`
+- `Google-Scholar-Scraper-v2.0.1-Setup-Windows-x64.exe`
 - `SHA256SUMS.txt`
 
 Release page:
-[Google Scholar Scraper V2.0.0](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/tag/v2.0.0)
-
-The current source tree is prepared as a V2.0.1 release candidate. Until a
-V2.0.1 release is explicitly published, use the V2.0.0 download links above for
-stable public artifacts.
+[Google Scholar Scraper V2.0.1](https://github.com/MahdiNavaei/Google-Scholar-Scraper/releases/tag/v2.0.1)
 
 ### Portable Windows ZIP
 
-1. Download the portable ZIP from the V2.0.0 release.
+1. Download the portable ZIP from the V2.0.1 release.
 2. Verify the ZIP against `SHA256SUMS.txt`.
 3. Extract the ZIP.
 4. Run `GoogleScholarScraper.exe` from the extracted folder.
@@ -134,7 +130,7 @@ The portable build does not require a source checkout.
 
 ### Windows Installer
 
-1. Download the installer from the V2.0.0 release.
+1. Download the installer from the V2.0.1 release.
 2. Verify the installer against `SHA256SUMS.txt`.
 3. Run the installer.
 4. Launch it from the Start Menu or optional desktop shortcut.
