@@ -11,11 +11,14 @@
 
 ### Changed
 
-- Added exact V2.0.1 release-candidate dependency constraints.
-- Added root-level third-party notices for the expected Windows distribution dependency set.
-- Included `LICENSE`, `NOTICE`, `COMMERCIAL_LICENSE.md`, and `THIRD_PARTY_NOTICES.txt` in PyInstaller portable and installer layouts.
+- Added exact V2.0.1 release-build dependency constraints.
+- Updated constrained HTTP dependencies to `requests 2.33.0`, `urllib3 2.7.0`, and `idna 3.15` following the final dependency security review.
+- Added deterministic collection of exact third-party legal files from the constrained release-build environment.
+- Included `LICENSE`, `NOTICE`, `COMMERCIAL_LICENSE.md`, `THIRD_PARTY_NOTICES.txt`, and a populated `third_party_licenses/` bundle in portable and installer layouts.
+- Removed duplicate project notice files from the PyInstaller `_internal` directory.
 - Added remote Windows installer install-launch-export-uninstall smoke coverage.
-- Improved project metadata for package consumers and repository presentation.
+- Added verification of the installed third-party license bundle.
+- Improved project metadata and release documentation.
 
 ## 2.0.0
 
