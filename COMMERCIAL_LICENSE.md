@@ -16,6 +16,7 @@ Examples of uses that may require a separate commercial license include:
 - Using the software as a commercial product component where the license requires separate permission.
 
 This document does not grant commercial rights, set fixed prices, or create
-automatic approval conditions. Contact Mahdi Navaei for commercial licensing,
-sponsorship, integration, or custom collaboration inquiries:
-M.Navaei1367@gmail.com
+automatic approval conditions.
+
+For commercial licensing, sponsorship, integration, or custom collaboration
+inquiries, contact [Mahdi Navaei](mailto:M.Navaei1367@gmail.com).
