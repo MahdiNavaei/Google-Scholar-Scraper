@@ -1,95 +1,63 @@
 Google Scholar Scraper Third-Party Notices
 
-This file summarizes third-party components expected in the V2.0.1 Windows
-portable and installer distributions. Version evidence is taken from the Python
-package metadata used for the V2.0.1 release-candidate build constraints.
-
-The application code is distributed under LICENSE, NOTICE, and
-COMMERCIAL_LICENSE.md. Third-party dependencies remain under their own licenses.
+This file is the distribution index for V2.0.1. Third-party components remain
+under their own licenses. License texts are preserved in the release bundle
+under third_party_licenses/.
 
 Runtime dependencies:
 
 - beautifulsoup4 4.14.3
   License: MIT License
-  Project: https://www.crummy.com/software/BeautifulSoup/bs4/
 
 - soupsieve 2.8.1
-  License: MIT
-  Project: https://github.com/facelessuser/soupsieve
+  License: MIT License
 
 - openpyxl 3.1.5
-  License: MIT
-  Project: https://openpyxl.readthedocs.io
+  License: MIT License
 
-- et_xmlfile 2.0.0
-  License: MIT
-  Project: https://foss.heptapod.net/openpyxl/et_xmlfile
+- et-xmlfile 2.0.0
+  License: MIT License
 
 - requests 2.32.5
   License: Apache-2.0
-  Project: https://requests.readthedocs.io
 
 - urllib3 2.3.0
-  License: MIT
-  Project: https://urllib3.readthedocs.io
+  License: MIT License
 
 - charset-normalizer 3.4.4
-  License: MIT
-  Project: https://charset-normalizer.readthedocs.io/
+  License: MIT License
 
 - idna 3.11
   License: BSD-3-Clause
-  Project: https://github.com/kjd/idna
 
 - certifi 2025.11.12
   License: MPL-2.0
-  Project: https://github.com/certifi/python-certifi
 
-Build and packaging components:
+Build dependencies:
 
 - PyInstaller 6.20.0
-  License: GPLv2-or-later with a special exception allowing distribution of
-  programs built with PyInstaller, including non-free programs.
-  Project: https://pyinstaller.org
+  License: GPLv2-or-later with special exception for distributing built applications
 
 - pyinstaller-hooks-contrib 2026.4
-  License: GPL-2.0-or-later for standard hooks and files; Apache-2.0 for
-  runtime hooks under _pyinstaller_hooks_contrib/rthooks.
-  Project: https://github.com/pyinstaller/pyinstaller-hooks-contrib
+  License: GPL-2.0-or-later / Apache-2.0 depending on included component
 
 - altgraph 0.17.5
-  License: MIT
-  Project: https://altgraph.readthedocs.io
+  License: MIT License
 
 - packaging 25.0
   License: Apache-2.0 OR BSD-2-Clause
-  Project: https://packaging.pypa.io/
 
 - pefile 2024.8.26
-  License: MIT
-  Project: https://github.com/erocarrera/pefile
+  License: MIT License
 
 - pywin32-ctypes 0.2.3
   License: BSD-3-Clause
-  Project: https://github.com/enthought/pywin32-ctypes
 
 - typing_extensions 4.15.0
   License: PSF-2.0
-  Project: https://github.com/python/typing_extensions
 
-Python and Windows UI runtime:
+Release distribution requirement:
 
-- Python 3.10 runtime
-  License: Python Software Foundation License
-  Project: https://www.python.org/
-
-- Tcl/Tk runtime used by tkinter
-  License: Tcl/Tk License
-  Project: https://www.tcl.tk/
-
-Distribution note:
-
-The PyInstaller onedir bundle may include package metadata directories and
-license files generated from installed wheels. This notice file is included at
-the top level of the portable and installer layouts so redistributors have a
-stable, human-readable third-party notice with the application license files.
+The release package must include the corresponding license text files under
+third_party_licenses/ and this notice index together with LICENSE, NOTICE,
+and COMMERCIAL_LICENSE.md.
