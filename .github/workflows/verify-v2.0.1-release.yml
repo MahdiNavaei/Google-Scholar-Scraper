@@ -1,0 +1,107 @@
+name: Verify Published V2.0.1
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    env:
+      TAG_NAME: v2.0.1
+      RELEASE_SHA: c7fb37e761e944c1d2185cb4f24ee589780f1446
+      PORTABLE_NAME: Google-Scholar-Scraper-v2.0.1-Portable-Windows-x64.zip
+      INSTALLER_NAME: Google-Scholar-Scraper-v2.0.1-Setup-Windows-x64.exe
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag target
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin --tags --force
+          test "$(git rev-list -n 1 "$TAG_NAME")" = "$RELEASE_SHA"
+
+      - name: Verify stable GitHub Release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$(gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --json tagName,isDraft,isPrerelease,url)"
+          echo "$metadata"
+          test "$(echo "$metadata" | jq -r .tagName)" = "$TAG_NAME"
+          test "$(echo "$metadata" | jq -r .isDraft)" = "false"
+          test "$(echo "$metadata" | jq -r .isPrerelease)" = "false"
+
+      - name: Download and verify published assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p public-release
+          gh release download "$TAG_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir public-release \
+            --pattern "$PORTABLE_NAME" \
+            --pattern "$INSTALLER_NAME" \
+            --pattern SHA256SUMS.txt
+          cd public-release
+          test -s "$PORTABLE_NAME"
+          test -s "$INSTALLER_NAME"
+          test -s SHA256SUMS.txt
+          sha256sum -c SHA256SUMS.txt
+
+      - name: Inspect published Portable distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import tempfile
+
+          release_dir = Path('public-release')
+          portable = release_dir / 'Google-Scholar-Scraper-v2.0.1-Portable-Windows-x64.zip'
+          with tempfile.TemporaryDirectory() as temp_dir:
+              root = Path(temp_dir)
+              with ZipFile(portable) as archive:
+                  archive.extractall(root)
+              top_level = list(root.iterdir())
+              assert [path.name for path in top_level] == ['Google-Scholar-Scraper-v2.0.1'], top_level
+              app = top_level[0]
+              required = [
+                  'GoogleScholarScraper.exe',
+                  'LICENSE',
+                  'NOTICE',
+                  'COMMERCIAL_LICENSE.md',
+                  'THIRD_PARTY_NOTICES.txt',
+                  'third_party_licenses/MANIFEST.txt',
+                  'third_party_licenses/requests',
+                  'third_party_licenses/urllib3',
+                  'third_party_licenses/idna',
+                  'third_party_licenses/certifi',
+                  'third_party_licenses/python',
+                  'third_party_licenses/tcl-tk',
+              ]
+              for relative in required:
+                  assert (app / relative).exists(), relative
+              for duplicate in ('LICENSE', 'NOTICE', 'COMMERCIAL_LICENSE.md', 'THIRD_PARTY_NOTICES.txt'):
+                  assert not (app / '_internal' / duplicate).exists(), duplicate
+              legal_files = [
+                  path for path in (app / 'third_party_licenses').rglob('*')
+                  if path.is_file() and path.name != 'MANIFEST.txt'
+              ]
+              assert legal_files
+              assert all(path.stat().st_size > 0 for path in legal_files)
+          PY
+
+      - name: Verify V2.0.0 remained immutable
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-list -n 1 v2.0.0)" = "7336b8d3a72275692344315ed0e194e26646b7b6"
