@@ -16,6 +16,8 @@ $PortablePath = Join-Path $ReleaseDir $PortableName
 $ChecksumPath = Join-Path $ReleaseDir "SHA256SUMS.txt"
 $SpecPath = Join-Path $ProjectRoot "packaging\pyinstaller\GoogleScholarScraper.spec"
 $InstallerScript = Join-Path $ProjectRoot "installer\GoogleScholarScraper.iss"
+$ConstraintsPath = Join-Path $ProjectRoot "constraints\release-2.0.1.txt"
+$LicenseCollectorPath = Join-Path $ProjectRoot "scripts\collect_third_party_licenses.py"
 
 function Remove-GeneratedPath {
     param([Parameter(Mandatory=$true)][string]$Path)
@@ -90,12 +92,62 @@ function Remove-OptionalHttp2Metadata {
     }
 }
 
+function Collect-ThirdPartyLicenses {
+    param([Parameter(Mandatory=$true)][string]$AppDir)
+    $outputDir = Join-Path $AppDir "third_party_licenses"
+    python $LicenseCollectorPath `
+        --constraints $ConstraintsPath `
+        --app-dir $AppDir `
+        --output-dir $outputDir
+    if ($LASTEXITCODE -ne 0) {
+        throw "Third-party license collection failed with exit code $LASTEXITCODE."
+    }
+}
+
+function Verify-DistributionCompliance {
+    param([Parameter(Mandatory=$true)][string]$AppDir)
+    foreach ($name in @("LICENSE", "NOTICE", "COMMERCIAL_LICENSE.md", "THIRD_PARTY_NOTICES.txt")) {
+        $path = Join-Path $AppDir $name
+        if (-not (Test-Path -LiteralPath $path)) {
+            throw "Required distribution notice missing: $path"
+        }
+    }
+
+    $licenseRoot = Join-Path $AppDir "third_party_licenses"
+    $requiredLicenseEntries = @(
+        "MANIFEST.txt",
+        "beautifulsoup4",
+        "soupsieve",
+        "openpyxl",
+        "et-xmlfile",
+        "requests",
+        "urllib3",
+        "charset-normalizer",
+        "idna",
+        "certifi",
+        "typing-extensions",
+        "pyinstaller",
+        "pyinstaller-hooks-contrib",
+        "python",
+        "tcl-tk"
+    )
+    foreach ($entry in $requiredLicenseEntries) {
+        $path = Join-Path $licenseRoot $entry
+        if (-not (Test-Path -LiteralPath $path)) {
+            throw "Required third-party license bundle entry missing: $path"
+        }
+    }
+}
+
 Set-Location $ProjectRoot
 Remove-GeneratedPath $BuildDir
 Remove-GeneratedPath $DistDir
 New-Item -ItemType Directory -Path $ReleaseDir -Force | Out-Null
 
 python -m PyInstaller $SpecPath --noconfirm --clean
+if ($LASTEXITCODE -ne 0) {
+    throw "PyInstaller failed with exit code $LASTEXITCODE."
+}
 
 $ExePath = Join-Path $DistDir "$AppDirName\GoogleScholarScraper.exe"
 if (-not (Test-Path -LiteralPath $ExePath)) {
@@ -104,6 +156,8 @@ if (-not (Test-Path -LiteralPath $ExePath)) {
 $AppDir = Join-Path $DistDir $AppDirName
 Remove-OptionalHttp2Metadata $AppDir
 Copy-DistributionNotices $AppDir
+Collect-ThirdPartyLicenses $AppDir
+Verify-DistributionCompliance $AppDir
 
 Compress-Archive -Path $AppDir -DestinationPath $PortablePath -Force
 if (-not (Test-Path -LiteralPath $PortablePath)) {
@@ -117,6 +171,9 @@ $checksums += "$portableHash  $PortableName"
 $InnoCompiler = Get-InnoCompiler
 if ($InnoCompiler -and -not $SkipInstaller) {
     & $InnoCompiler $InstallerScript
+    if ($LASTEXITCODE -ne 0) {
+        throw "Inno Setup compilation failed with exit code $LASTEXITCODE."
+    }
     $InstallerPath = Join-Path $DistDir "installer\$InstallerName"
     if (-not (Test-Path -LiteralPath $InstallerPath)) {
         throw "Expected installer was not created: $InstallerPath"
