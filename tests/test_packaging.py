@@ -17,6 +17,7 @@ class PackagingMetadataTests(unittest.TestCase):
         self.assertEqual(google_scholar_scraper.__version__, "2.0.1")
         self.assertIn('version = "2.0.1"', pyproject)
         self.assertIn('requires-python = ">=3.10"', pyproject)
+        self.assertIn('"requests>=2.33,<3"', pyproject)
 
     def test_gui_entrypoint_is_import_safe(self) -> None:
         self.assertTrue(callable(main))
