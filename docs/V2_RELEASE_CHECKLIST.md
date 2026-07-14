@@ -35,8 +35,9 @@ future tag or GitHub Release publication.
   type syntax. V2.0.1 corrects the declared minimum to Python 3.10+.
 - V2.0.0 portable and installer layouts did not include all repository license
   and notice files at the distribution root. V2.0.1 adds those files.
-- V2.0.0 did not include a consolidated third-party notices file. V2.0.1 adds
-  `THIRD_PARTY_NOTICES.txt`.
+- V2.0.0 did not include a consolidated third-party legal-file bundle. V2.0.1
+  adds a generated `third_party_licenses/` bundle assembled from the exact
+  constrained release-build environment.
 
 ## Release Governance
 

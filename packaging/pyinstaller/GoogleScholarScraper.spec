@@ -6,13 +6,6 @@ from pathlib import Path
 project_root = Path(SPECPATH).parents[1]
 src_path = project_root / "src"
 entrypoint = src_path / "google_scholar_scraper" / "__main__.py"
-distribution_documents = [
-    project_root / "LICENSE",
-    project_root / "NOTICE",
-    project_root / "COMMERCIAL_LICENSE.md",
-    project_root / "THIRD_PARTY_NOTICES.txt",
-]
-datas = [(str(path), ".") for path in distribution_documents]
 excluded_optional_modules = [
     "aiohttp",
     "cryptography",
@@ -51,7 +44,7 @@ a = Analysis(
     [str(entrypoint)],
     pathex=[str(src_path)],
     binaries=[],
-    datas=datas,
+    datas=[],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

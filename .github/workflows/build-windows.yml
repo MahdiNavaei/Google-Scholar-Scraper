@@ -2,6 +2,10 @@ name: Build Windows Artifacts
 
 on:
   workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   build-windows:
@@ -28,7 +32,7 @@ jobs:
           python -m pip install -c constraints/release-2.0.1.txt . pyinstaller
 
       - name: Compile source and tests
-        run: python -m compileall prog.py src tests
+        run: python -m compileall prog.py src tests scripts/collect_third_party_licenses.py
 
       - name: Run deterministic tests
         run: python -m unittest discover -s tests
@@ -67,20 +71,72 @@ jobs:
             Copy-Item -LiteralPath $source -Destination $target -Force
           }
 
-      - name: Verify packaged executable
+      - name: Collect exact third-party licenses
         shell: pwsh
         run: |
-          $exe = "dist\$env:APP_DIR\GoogleScholarScraper.exe"
+          $ErrorActionPreference = "Stop"
+          $appDir = "dist\$env:APP_DIR"
+          python scripts\collect_third_party_licenses.py `
+            --constraints constraints\release-2.0.1.txt `
+            --app-dir $appDir `
+            --output-dir "$appDir\third_party_licenses"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Third-party license collection failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Verify packaged executable and distribution compliance
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $appDir = "dist\$env:APP_DIR"
+          $exe = "$appDir\GoogleScholarScraper.exe"
           if (-not (Test-Path -LiteralPath $exe)) {
             throw "Expected packaged executable missing: $exe"
           }
+
           foreach ($name in @("LICENSE", "NOTICE", "COMMERCIAL_LICENSE.md", "THIRD_PARTY_NOTICES.txt")) {
-            $path = Join-Path "dist\$env:APP_DIR" $name
+            $path = Join-Path $appDir $name
             if (-not (Test-Path -LiteralPath $path)) {
               throw "Required distribution notice missing: $path"
             }
+            $duplicate = Join-Path "$appDir\_internal" $name
+            if (Test-Path -LiteralPath $duplicate) {
+              throw "Distribution notice must not be duplicated inside _internal: $duplicate"
+            }
           }
-          $unexpected = Get-ChildItem -LiteralPath "dist\$env:APP_DIR\_internal" -Directory -ErrorAction SilentlyContinue |
+
+          $licenseRoot = Join-Path $appDir "third_party_licenses"
+          $requiredEntries = @(
+            "MANIFEST.txt",
+            "beautifulsoup4",
+            "soupsieve",
+            "openpyxl",
+            "et-xmlfile",
+            "requests",
+            "urllib3",
+            "charset-normalizer",
+            "idna",
+            "certifi",
+            "typing-extensions",
+            "pyinstaller",
+            "pyinstaller-hooks-contrib",
+            "python",
+            "tcl-tk"
+          )
+          foreach ($entry in $requiredEntries) {
+            $path = Join-Path $licenseRoot $entry
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Required third-party license bundle entry missing: $path"
+            }
+          }
+
+          $legalFiles = Get-ChildItem -LiteralPath $licenseRoot -File -Recurse |
+            Where-Object { $_.Name -ne "MANIFEST.txt" }
+          if (-not $legalFiles) {
+            throw "Third-party license bundle contains no legal files."
+          }
+
+          $unexpected = Get-ChildItem -LiteralPath "$appDir\_internal" -Directory -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -like "h2-*.dist-info" -or $_.Name -like "hpack-*.dist-info" -or $_.Name -like "hyperframe-*.dist-info" }
           if ($unexpected) {
             throw "Unexpected optional HTTP/2 metadata found: $($unexpected.Name -join ', ')"
@@ -175,6 +231,12 @@ jobs:
             $path = Join-Path $installRoot $name
             if (-not (Test-Path -LiteralPath $path)) {
               throw "Installed distribution notice missing: $path"
+            }
+          }
+          foreach ($entry in @("MANIFEST.txt", "requests", "urllib3", "idna", "python", "tcl-tk")) {
+            $path = Join-Path (Join-Path $installRoot "third_party_licenses") $entry
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Installed third-party license bundle entry missing: $path"
             }
           }
 

@@ -235,7 +235,9 @@ configured to install or locate Inno Setup and fail if the installer cannot be
 built.
 
 Portable and installer distributions include `LICENSE`, `NOTICE`,
-`COMMERCIAL_LICENSE.md`, and `THIRD_PARTY_NOTICES.txt`.
+`COMMERCIAL_LICENSE.md`, `THIRD_PARTY_NOTICES.txt`, and a generated
+`third_party_licenses/` bundle collected from the exact constrained release-build
+environment.
 
 ## Project Structure
 
@@ -256,16 +258,19 @@ tests/
 
 packaging/pyinstaller/    PyInstaller configuration
 installer/                Inno Setup definition
-scripts/                  Windows build helper
+scripts/                  Windows build and release-compliance helpers
+constraints/              Exact release-build dependency constraints
 docs/                     Release and audit documentation
 ```
 
 ## Release And Documentation
 
-- [Release notes](docs/RELEASE_NOTES_V2.0.0.md)
-- [V2 release verification record](docs/V2_RELEASE_CHECKLIST.md)
+- [V2.0.1 release notes](docs/RELEASE_NOTES_V2.0.1.md)
+- [V2.0.0 release notes](docs/RELEASE_NOTES_V2.0.0.md)
+- [V2.0.0 release verification record](docs/V2_RELEASE_CHECKLIST.md)
 - [Changelog](CHANGELOG.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.txt)
+- [Third-party license bundle workflow](third_party_licenses/README.md)
 - [PyInstaller spec](packaging/pyinstaller/GoogleScholarScraper.spec)
 - [Inno Setup definition](installer/GoogleScholarScraper.iss)
 - [Windows build script](scripts/build_windows.ps1)
