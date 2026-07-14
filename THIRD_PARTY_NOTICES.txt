@@ -1,8 +1,10 @@
 Google Scholar Scraper Third-Party Notices
 
 This file is the distribution index for V2.0.1. Third-party components remain
-under their own licenses. License texts are preserved in the release bundle
-under third_party_licenses/.
+under their own licenses. The Windows portable and installer distributions
+include the corresponding legal files under third_party_licenses/ together
+with a generated MANIFEST.txt describing the exact files collected from the
+constrained release-build environment.
 
 Runtime dependencies:
 
@@ -18,46 +20,43 @@ Runtime dependencies:
 - et-xmlfile 2.0.0
   License: MIT License
 
-- requests 2.32.5
+- requests 2.33.0
   License: Apache-2.0
 
-- urllib3 2.3.0
+- urllib3 2.7.0
   License: MIT License
 
 - charset-normalizer 3.4.4
   License: MIT License
 
-- idna 3.11
+- idna 3.15
   License: BSD-3-Clause
 
 - certifi 2025.11.12
   License: MPL-2.0
 
-Build dependencies:
-
-- PyInstaller 6.20.0
-  License: GPLv2-or-later with special exception for distributing built applications
-
-- pyinstaller-hooks-contrib 2026.4
-  License: GPL-2.0-or-later / Apache-2.0 depending on included component
-
-- altgraph 0.17.5
-  License: MIT License
-
-- packaging 25.0
-  License: Apache-2.0 OR BSD-2-Clause
-
-- pefile 2024.8.26
-  License: MIT License
-
-- pywin32-ctypes 0.2.3
-  License: BSD-3-Clause
-
 - typing_extensions 4.15.0
   License: PSF-2.0
 
+Bundled runtime and packaging components:
+
+- Python 3.10 runtime
+  License: Python Software Foundation License
+
+- Tcl/Tk runtime used by tkinter
+  License: Tcl/Tk License
+
+- PyInstaller 6.20.0
+  License: GPLv2-or-later with the PyInstaller bootloader exception permitting
+  distribution of applications built with PyInstaller
+
+- pyinstaller-hooks-contrib 2026.4
+  License: GPL-2.0-or-later / Apache-2.0 depending on the included component
+
 Release distribution requirement:
 
-The release package must include the corresponding license text files under
-third_party_licenses/ and this notice index together with LICENSE, NOTICE,
-and COMMERCIAL_LICENSE.md.
+The release package must include this notice index, LICENSE, NOTICE,
+COMMERCIAL_LICENSE.md, and a populated third_party_licenses/ directory generated
+from the exact constrained release-build environment. The generated license
+bundle is a redistribution aid and does not replace or modify any third-party
+license terms.
